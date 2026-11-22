@@ -1,4 +1,7 @@
-modelo,diferencia,ic95_bajo,ic95_alto
-arbol,0.045175,0.023148,0.070575
-bosque,0.033492,0.015302,0.052965
-mlp,0.201862,0.158509,0.246467
+comparacion,modelo,diferencia,ic95_bajo,ic95_alto
+con largo de texto,arbol,0.045175,0.023148,0.070575
+con largo de texto,bosque,0.033492,0.015302,0.052965
+con largo de texto,mlp,0.201862,0.158509,0.246467
+sin largo de texto,arbol,0.371182,0.329048,0.415862
+sin largo de texto,bosque,0.374300,0.323228,0.420815
+sin largo de texto,mlp,0.363131,0.316853,0.412104

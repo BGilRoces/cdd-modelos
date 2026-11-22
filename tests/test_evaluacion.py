@@ -85,6 +85,22 @@ class RankingVsAtencion(unittest.TestCase):
         self.assertEqual(tabla.episodios.tolist(), [20] * 5)
 
 
+class CoberturaTopK(unittest.TestCase):
+    def test_un_ranking_perfecto_cubre_todo_con_precision_total(self):
+        y = np.array([1] * 20 + [0] * 80)
+        score = np.where(y == 1, 0.9, 0.1)
+        tabla = evaluacion.cobertura_top_k(y, score, fracciones=(0.1, 0.2))
+        self.assertEqual(tabla.precision.tolist(), [1.0, 1.0])
+        self.assertAlmostEqual(tabla.cobertura.iloc[1], 1.0)
+        self.assertAlmostEqual(tabla.cobertura.iloc[0], 0.5)
+        self.assertAlmostEqual(tabla.mejora_sobre_azar.iloc[0], 5.0)
+
+    def test_un_puntaje_constante_no_mejora_el_azar(self):
+        y = np.array([1, 0] * 200)
+        tabla = evaluacion.cobertura_top_k(y, np.full(400, 0.5), fracciones=(0.5,))
+        self.assertAlmostEqual(tabla.mejora_sobre_azar.iloc[0], 1.0, delta=0.15)
+
+
 class ImportanciaPorBloque(unittest.TestCase):
     def test_permutar_una_variable_informativa_baja_la_metrica(self):
         azar = np.random.default_rng(2)

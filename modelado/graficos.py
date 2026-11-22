@@ -8,7 +8,12 @@ from sklearn.metrics import precision_recall_curve, roc_curve
 from .modelos import NOMBRES
 
 COLORES = {"dummy": "#8c8c8c", "arbol": "#2f6db5", "bosque": "#2a9d6f", "mlp": "#d9822b"}
-TITULOS_GRUPO = {"operativas": "10 variables operativas", "completo": "58 variables (operativas + comerciales)"}
+TITULOS_GRUPO = {
+    "operativas": "10 variables operativas",
+    "completo": "58 variables (operativas + comerciales)",
+    "operativas_sin_largo": "9 operativas, sin largo de texto",
+    "completo_sin_largo": "56 variables, sin largo de texto",
+}
 
 plt.rcParams.update({
     "font.size": 13, "axes.titlesize": 15, "axes.labelsize": 13,
@@ -39,6 +44,26 @@ def comparacion_ap(metricas, ruta):
         eje.set_ylim(0.4, 1.0)
     ejes[0].set_ylabel("Average Precision")
     ejes[0].legend(loc="upper center", bbox_to_anchor=(1.05, -0.08), ncol=4, frameon=False)
+    _guardar(fig, ruta)
+
+
+def ablacion(metricas, ruta):
+    base = metricas[(metricas.umbral_tipo == "fijo") & (metricas.particion == "test")]
+    grupos = ["operativas", "operativas_sin_largo", "completo", "completo_sin_largo"]
+    etiquetas = ["10 operativas", "9 operativas\nsin largo de texto", "58 variables", "56 variables\nsin largo de texto"]
+    fig, eje = plt.subplots(figsize=(13, 5.5))
+    ancho = 0.25
+    for i, nombre in enumerate(("arbol", "bosque", "mlp")):
+        valores = [base[(base.grupo == g) & (base.modelo == nombre)].average_precision.iloc[0] for g in grupos]
+        barras = eje.bar(np.arange(4) + (i - 1) * ancho, valores, ancho, color=COLORES[nombre], label=NOMBRES[nombre])
+        eje.bar_label(barras, fmt="%.2f", fontsize=10, padding=2)
+    azar = base[base.modelo == "dummy"].average_precision.iloc[0]
+    eje.axhline(azar, color=COLORES["dummy"], ls="--", lw=1.5, label="Dummy")
+    eje.set_xticks(range(4), etiquetas)
+    eje.set_ylim(0.4, 1.0)
+    eje.set_ylabel("Average Precision (test)")
+    eje.set_title("Qué queda cuando se saca el largo del texto")
+    eje.legend(loc="upper center", bbox_to_anchor=(0.5, -0.15), ncol=4, frameon=False)
     _guardar(fig, ruta)
 
 
@@ -116,25 +141,29 @@ def atencion_por_tramo(tablas, ruta, grupo="completo"):
     _guardar(fig, ruta)
 
 
-def importancia(bloques, nombre, ruta):
+def importancia(bloques, nombre, ruta, titulo="58 variables"):
     fig, eje = plt.subplots(figsize=(9, 5))
     serie = bloques.sort_values()
     eje.barh(serie.index, serie.values, color=COLORES[nombre])
-    eje.set_title(f"{NOMBRES[nombre]} con 58 variables: aporte de cada bloque")
+    eje.set_title(f"{NOMBRES[nombre]} con {titulo}: aporte de cada bloque")
     eje.set_xlabel("Caída de Average Precision al permutar el bloque (validation)")
     _guardar(fig, ruta)
 
 
 def diferencia_grupos(tabla, ruta):
-    fig, eje = plt.subplots(figsize=(9, 5))
-    y = np.arange(len(tabla))
-    eje.errorbar(
-        tabla.diferencia, y,
-        xerr=[tabla.diferencia - tabla.ic95_bajo, tabla.ic95_alto - tabla.diferencia],
-        fmt="o", color="#222222", ecolor="#888888", capsize=5, lw=2, ms=8,
-    )
+    fig, eje = plt.subplots(figsize=(10, 5.5))
+    estilos = {"con largo de texto": ("#888888", -0.12), "sin largo de texto": ("#2a9d6f", 0.12)}
+    modelos_ = list(dict.fromkeys(tabla.modelo))
+    for etiqueta, (color, desvio) in estilos.items():
+        t = tabla[tabla.comparacion == etiqueta].set_index("modelo").reindex(modelos_)
+        y = np.arange(len(modelos_)) + desvio
+        eje.errorbar(
+            t.diferencia, y, xerr=[t.diferencia - t.ic95_bajo, t.ic95_alto - t.diferencia],
+            fmt="o", color=color, ecolor=color, capsize=5, lw=2, ms=8, label=etiqueta,
+        )
     eje.axvline(0, color="#bbbbbb", lw=1)
-    eje.set_yticks(y, [NOMBRES[m] for m in tabla.modelo])
-    eje.set_xlabel("Average Precision con 58 variables menos con 10 (test)")
+    eje.set_yticks(range(len(modelos_)), [NOMBRES[m] for m in modelos_])
+    eje.set_xlabel("Average Precision con señales comerciales menos solo operativas (test)")
     eje.set_title("Aporte de las señales comerciales, con intervalo al 95 %")
+    eje.legend(frameon=False)
     _guardar(fig, ruta)

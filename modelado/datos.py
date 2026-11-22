@@ -53,9 +53,9 @@ def columnas_comerciales():
     return comerciales
 
 
-def bloques_de_variables():
+def bloques_de_variables(columnas=None):
     f = cfg.FAMILIAS
-    return {
+    bloques = {
         "Operativas": list(cfg.OPERATIVAS),
         "Familia pedida": ["requested_" + x for x in f] + [
             "requested_family_count", "request_family_detected", "request_family_not_detected"],
@@ -66,11 +66,23 @@ def bloques_de_variables():
             "matched_family_count", "has_matching_family", "has_unmatched_request"],
         "Texto del ancla": ["anchor_useful_text_chars", "request_text_available"],
     }
+    if columnas is None:
+        return bloques
+    columnas = set(columnas)
+    recortados = {n: [c for c in cs if c in columnas] for n, cs in bloques.items()}
+    return {n: cs for n, cs in recortados.items() if cs}
 
 
 def grupos_de_variables():
     operativas = list(cfg.OPERATIVAS)
-    return {"operativas": operativas, "completo": operativas + columnas_comerciales()}
+    completo = operativas + columnas_comerciales()
+    sin_largo = [c for c in completo if c not in cfg.LARGO_DE_TEXTO]
+    return {
+        "operativas": operativas,
+        "completo": completo,
+        "operativas_sin_largo": [c for c in operativas if c in sin_largo],
+        "completo_sin_largo": sin_largo,
+    }
 
 
 def cargar_episodios():

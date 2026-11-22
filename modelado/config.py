@@ -32,6 +32,10 @@ OPERATIVAS = [
     "inbound_text_chars",
 ]
 
+# El largo del texto identifica el mensaje precargado del anuncio, que cambia cuando
+# se rota la creatividad; la ablación los excluye para medir qué queda sin ese atajo.
+LARGO_DE_TEXTO = ["inbound_text_chars", "anchor_useful_text_chars"]
+
 FAMILIAS = [
     "abrojos", "ambos", "botones", "broches", "chalecos", "cierres",
     "cintas", "elasticos", "entretelas", "etiquetas", "hilos", "telas",

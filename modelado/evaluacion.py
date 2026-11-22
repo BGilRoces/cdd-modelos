@@ -95,6 +95,25 @@ def primer_episodio_por_contacto(df):
     return df.sort_values("anchor_at").groupby("contact_key").head(1).index
 
 
+def cobertura_top_k(y, score, fracciones=(0.1, 0.2, 0.3, 0.5)):
+    """Qué pasa si se revisa sólo la fracción de chats con mayor puntaje."""
+    y = np.asarray(y)
+    azar = np.random.default_rng(cfg.SEMILLA).permutation(len(y))
+    orden = np.lexsort((azar, -np.asarray(score)))
+    filas = []
+    for f in fracciones:
+        n = int(len(y) * f)
+        elegidos = y[orden[:n]]
+        filas.append({
+            "fraccion": f,
+            "chats_revisados": n,
+            "precision": elegidos.mean(),
+            "cobertura": elegidos.sum() / y.sum(),
+            "mejora_sobre_azar": elegidos.mean() / y.mean(),
+        })
+    return pd.DataFrame(filas)
+
+
 def curva_calibracion(y, score, bandas=10):
     observado, predicho = calibration_curve(y, score, n_bins=bandas, strategy="quantile")
     return pd.DataFrame({"predicho": predicho, "observado": observado})

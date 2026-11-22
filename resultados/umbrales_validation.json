@@ -6,5 +6,13 @@
   "completo/dummy": 0.5321100917431193,
   "completo/arbol": 0.5797101449275363,
   "completo/bosque": 0.5198853167735618,
-  "completo/mlp": 0.512719759973263
+  "completo/mlp": 0.512719759973263,
+  "operativas_sin_largo/dummy": 0.5321100917431193,
+  "operativas_sin_largo/arbol": 0.0,
+  "operativas_sin_largo/bosque": 0.4246443388337444,
+  "operativas_sin_largo/mlp": 0.2348362688066966,
+  "completo_sin_largo/dummy": 0.5321100917431193,
+  "completo_sin_largo/arbol": 0.48484848484848486,
+  "completo_sin_largo/bosque": 0.6616889179068478,
+  "completo_sin_largo/mlp": 0.6405175960941676
 }

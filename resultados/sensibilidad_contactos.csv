@@ -7,3 +7,11 @@ completo,dummy,989,0.499494,0.500000
 completo,arbol,989,0.869346,0.894536
 completo,bosque,989,0.896486,0.909655
 completo,mlp,989,0.870103,0.880121
+operativas_sin_largo,dummy,989,0.499494,0.500000
+operativas_sin_largo,arbol,989,0.507441,0.518940
+operativas_sin_largo,bosque,989,0.502995,0.478187
+operativas_sin_largo,mlp,989,0.492333,0.491030
+completo_sin_largo,dummy,989,0.499494,0.500000
+completo_sin_largo,arbol,989,0.889718,0.898665
+completo_sin_largo,bosque,989,0.892004,0.909688
+completo_sin_largo,mlp,989,0.880645,0.902889

@@ -36,6 +36,15 @@ class Variables(unittest.TestCase):
         self.assertEqual(len(grupos["completo"]), 58)
         self.assertEqual(len(set(grupos["completo"])), 58)
 
+    def test_los_grupos_sin_largo_de_texto_excluyen_solo_esas_columnas(self):
+        grupos = datos.grupos_de_variables()
+        self.assertEqual(len(grupos["operativas_sin_largo"]), 9)
+        self.assertEqual(len(grupos["completo_sin_largo"]), 56)
+        for nombre in ("operativas_sin_largo", "completo_sin_largo"):
+            self.assertFalse(set(cfg.LARGO_DE_TEXTO) & set(grupos[nombre]))
+        self.assertEqual(
+            set(grupos["completo"]) - set(grupos["completo_sin_largo"]), set(cfg.LARGO_DE_TEXTO))
+
     def test_los_bloques_cubren_las_58(self):
         bloques = datos.bloques_de_variables()
         todas = [c for cols in bloques.values() for c in cols]

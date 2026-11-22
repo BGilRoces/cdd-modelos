@@ -96,22 +96,43 @@ def correr(salida):
     ranking = metricas[(metricas.particion == "validation") & (metricas.umbral_tipo == "fijo") & (metricas.modelo != "dummy")]
     lideres = {g: ranking[ranking.grupo == g].sort_values("average_precision").iloc[-1].modelo for g in grupos}
 
-    lider = lideres["completo"]
-    bloques = evaluacion.importancia_por_bloque(
-        ajustados[("completo", lider)], matriz.loc[mascara["validation"], grupos["completo"]],
-        y[mascara["validation"]], datos.bloques_de_variables(), average_precision_score,
-    )
+    importancias = {}
+    for grupo in ("completo", "completo_sin_largo"):
+        columnas = grupos[grupo]
+        importancias[grupo] = (lideres[grupo], evaluacion.importancia_por_bloque(
+            ajustados[(grupo, lideres[grupo])], matriz.loc[mascara["validation"], columnas],
+            y[mascara["validation"]], datos.bloques_de_variables(columnas), average_precision_score,
+        ))
 
+    comparaciones = [
+        ("con largo de texto", "completo", "operativas"),
+        ("sin largo de texto", "completo_sin_largo", "operativas_sin_largo"),
+    ]
     aporte = []
-    for nombre in modelos.NOMBRES:
-        if nombre == "dummy":
-            continue
-        d, bajo, alto = evaluacion.diferencia_por_contacto(
-            y_test, scores[("completo", nombre)]["test"], scores[("operativas", nombre)]["test"],
-            test.contact_key, average_precision_score,
-        )
-        aporte.append({"modelo": nombre, "diferencia": d, "ic95_bajo": bajo, "ic95_alto": alto})
+    for etiqueta, con_comerciales, solo_operativas in comparaciones:
+        for nombre in modelos.NOMBRES:
+            if nombre == "dummy":
+                continue
+            d, bajo, alto = evaluacion.diferencia_por_contacto(
+                y_test, scores[(con_comerciales, nombre)]["test"], scores[(solo_operativas, nombre)]["test"],
+                test.contact_key, average_precision_score,
+            )
+            aporte.append({"comparacion": etiqueta, "modelo": nombre,
+                           "diferencia": d, "ic95_bajo": bajo, "ic95_alto": alto})
     aporte = pd.DataFrame(aporte)
+    entre_modelos = []
+    for grupo in ("completo", "completo_sin_largo"):
+        for a, b in (("bosque", "arbol"), ("bosque", "mlp"), ("arbol", "mlp")):
+            d, bajo, alto = evaluacion.diferencia_por_contacto(
+                y_test, scores[(grupo, a)]["test"], scores[(grupo, b)]["test"],
+                test.contact_key, average_precision_score,
+            )
+            entre_modelos.append({"grupo": grupo, "a": a, "b": b,
+                                  "diferencia": d, "ic95_bajo": bajo, "ic95_alto": alto})
+    cobertura = pd.concat(
+        {f"{g}/{n}": evaluacion.cobertura_top_k(y_test, s["test"]) for (g, n), s in scores.items()},
+        names=["modelo"],
+    ).reset_index(level=0)
 
     _guardar_csv(pd.DataFrame(ensayos), salida / "busqueda.csv")
     _guardar_csv(metricas, salida / "metricas.csv")
@@ -126,8 +147,14 @@ def correr(salida):
                   names=["modelo", "tramo"]).reset_index(),
         salida / "atencion_por_tramo_test.csv",
     )
-    _guardar_csv(bloques.rename("caida_ap").rename_axis("bloque").reset_index(), salida / "importancia_bloques.csv")
+    _guardar_csv(
+        pd.concat({g: s for g, (_, s) in importancias.items()}, names=["grupo", "bloque"])
+        .rename("caida_ap").reset_index(),
+        salida / "importancia_bloques.csv",
+    )
     _guardar_csv(aporte, salida / "aporte_comerciales_test.csv")
+    _guardar_csv(cobertura, salida / "cobertura_top_k_test.csv")
+    _guardar_csv(pd.DataFrame(entre_modelos), salida / "diferencias_entre_modelos_test.csv")
 
     graficos.comparacion_ap(metricas, salida / "figuras" / "01_average_precision.png")
     graficos.curvas(y_test, scores, salida / "figuras" / "02_curvas_precision_recall.png", "pr")
@@ -135,8 +162,12 @@ def correr(salida):
     graficos.matrices_confusion(metricas, salida / "figuras" / "04_matrices_confusion.png")
     graficos.calibracion(calibraciones, salida / "figuras" / "05_calibracion.png")
     graficos.atencion_por_tramo(tramos, salida / "figuras" / "06_atencion_por_tramo.png")
-    graficos.importancia(bloques, lider, salida / "figuras" / "07_importancia_bloques.png")
+    graficos.importancia(*importancias["completo"][::-1], salida / "figuras" / "07_importancia_bloques.png")
+    graficos.importancia(*importancias["completo_sin_largo"][::-1], salida / "figuras" / "11_importancia_bloques_sin_largo.png",
+                         titulo="56 variables")
     graficos.diferencia_grupos(aporte, salida / "figuras" / "08_aporte_comerciales.png")
+    graficos.ablacion(metricas, salida / "figuras" / "09_sin_largo_de_texto.png")
+    graficos.atencion_por_tramo(tramos, salida / "figuras" / "10_atencion_por_tramo_sin_largo.png", grupo="completo_sin_largo")
 
     predicciones = df[["episode_key", "particion"]].copy()
     for (g, n), s in scores.items():

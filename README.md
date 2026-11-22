@@ -32,7 +32,7 @@ Tests:
 
 1. **Datos.** Une las 58 variables al ancla con el resultado de cada episodio y se queda con los 3.981 episodios maduros.
 2. **Particiones.** Train antes del 01/09, validation en septiembre y test en octubre, sin barajar. Los episodios cuyo horizonte de 24 h cruza una frontera se purgan (139). Se guarda una huella de la asignación.
-3. **Búsqueda.** Cada modelo, con las 10 variables operativas y con las 58, se ajusta sobre train y se elige la configuración con mayor Average Precision en validation. Presupuesto: 1 configuración para Dummy, 70 para el árbol, 18 para el bosque y 18 para el MLP.
+3. **Búsqueda.** Cada modelo se ajusta con cuatro conjuntos de variables: las 10 operativas, las 58 del protocolo y las dos versiones sin las variables de largo de texto (9 y 56), que se agregan porque ese largo identifica el mensaje precargado del anuncio. Se ajusta sobre train y se elige la configuración con mayor Average Precision en validation. Presupuesto por conjunto de variables: 1 configuración para Dummy, 70 para el árbol, 18 para el bosque y 18 para el MLP.
 4. **Evaluación en test.** Matriz de confusión, accuracy, precision, recall, F1, Average Precision, ROC-AUC y Brier, con intervalos que remuestrean contactos completos. Se reporta también el umbral de 0,5 y un umbral elegido en validation.
 5. **Chequeo del ranking.** Se parte el test en cinco tramos según el puntaje y se mide cuánta atención humana recibió cada tramo (mensajes de una persona, fotos o documentos enviados). Esos indicadores se usan solo para evaluar, nunca como variables del modelo.
 

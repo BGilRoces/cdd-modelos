@@ -1,0 +1,7 @@
+grupo,a,b,diferencia,ic95_bajo,ic95_alto
+completo,bosque,arbol,0.022918,0.005139,0.039909
+completo,bosque,mlp,0.036299,0.002593,0.066398
+completo,arbol,mlp,0.013381,-0.017855,0.040721
+completo_sin_largo,bosque,arbol,0.002568,-0.013567,0.019807
+completo_sin_largo,bosque,mlp,0.025324,-0.011504,0.057489
+completo_sin_largo,arbol,mlp,0.022756,-0.011864,0.052961

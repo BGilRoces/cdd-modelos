@@ -20,7 +20,9 @@
   },
   "lideres_validation": {
     "operativas": "bosque",
-    "completo": "bosque"
+    "completo": "bosque",
+    "operativas_sin_largo": "mlp",
+    "completo_sin_largo": "bosque"
   },
   "configuraciones_elegidas": {
     "operativas/dummy": {},
@@ -56,6 +58,40 @@
       "alpha": "1.0",
       "hidden_layer_sizes": "(16,)",
       "learning_rate_init": "0.001"
+    },
+    "operativas_sin_largo/dummy": {},
+    "operativas_sin_largo/arbol": {
+      "criterion": "gini",
+      "max_depth": "8",
+      "min_samples_leaf": "1"
+    },
+    "operativas_sin_largo/bosque": {
+      "max_depth": "6",
+      "max_features": "0.3",
+      "min_samples_leaf": "5",
+      "n_estimators": "300"
+    },
+    "operativas_sin_largo/mlp": {
+      "alpha": "0.01",
+      "hidden_layer_sizes": "(64, 32)",
+      "learning_rate_init": "0.001"
+    },
+    "completo_sin_largo/dummy": {},
+    "completo_sin_largo/arbol": {
+      "criterion": "entropy",
+      "max_depth": "8",
+      "min_samples_leaf": "25"
+    },
+    "completo_sin_largo/bosque": {
+      "max_depth": "None",
+      "max_features": "sqrt",
+      "min_samples_leaf": "5",
+      "n_estimators": "300"
+    },
+    "completo_sin_largo/mlp": {
+      "alpha": "1.0",
+      "hidden_layer_sizes": "(64, 32)",
+      "learning_rate_init": "0.01"
     }
   },
   "complejidad": {
@@ -84,6 +120,32 @@
     "completo/mlp": {
       "parametros": 961,
       "iteraciones": 300
+    },
+    "operativas_sin_largo/dummy": {},
+    "operativas_sin_largo/arbol": {
+      "profundidad": 8,
+      "hojas": 84
+    },
+    "operativas_sin_largo/bosque": {
+      "arboles": 300,
+      "hojas_totales": 8567
+    },
+    "operativas_sin_largo/mlp": {
+      "parametros": 2753,
+      "iteraciones": 309
+    },
+    "completo_sin_largo/dummy": {},
+    "completo_sin_largo/arbol": {
+      "profundidad": 8,
+      "hojas": 39
+    },
+    "completo_sin_largo/bosque": {
+      "arboles": 300,
+      "hojas_totales": 21397
+    },
+    "completo_sin_largo/mlp": {
+      "parametros": 5761,
+      "iteraciones": 58
     }
   },
   "presupuesto_busqueda": {
