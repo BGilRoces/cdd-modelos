@@ -1,0 +1,101 @@
+{
+  "feature_version": "predictive_family_anchor_v3_1",
+  "semilla": 42,
+  "umbral_fijo": 0.5,
+  "particiones": {
+    "train": 1635,
+    "validation": 1165,
+    "test": 1042,
+    "purgado": 139
+  },
+  "huella_particiones": "bd0fedb2345d0fffb4d60cca9b887a91d1885a53e16dc2adcf5b3b4103f5b5a9",
+  "prevalencia": {
+    "train": 0.5321100917431193,
+    "validation": 0.6206008583690987,
+    "test": 0.4904030710172745
+  },
+  "hashes_datos": {
+    "research_mart_v2.sqlite": "3fb11fa15b5875a81d00b87c628fd01ca616e09de808eec450803e5ce259c68d",
+    "episode_features_v3.sqlite": "c75f6cc21b124fb0f9d024265287b1cdfd870cfc6dde7d6d0dc9dad5f8572afe"
+  },
+  "lideres_validation": {
+    "operativas": "bosque",
+    "completo": "bosque"
+  },
+  "configuraciones_elegidas": {
+    "operativas/dummy": {},
+    "operativas/arbol": {
+      "criterion": "gini",
+      "max_depth": "8",
+      "min_samples_leaf": "25"
+    },
+    "operativas/bosque": {
+      "max_depth": "10",
+      "max_features": "sqrt",
+      "min_samples_leaf": "5",
+      "n_estimators": "300"
+    },
+    "operativas/mlp": {
+      "alpha": "0.0001",
+      "hidden_layer_sizes": "(64, 32)",
+      "learning_rate_init": "0.01"
+    },
+    "completo/dummy": {},
+    "completo/arbol": {
+      "criterion": "entropy",
+      "max_depth": "6",
+      "min_samples_leaf": "10"
+    },
+    "completo/bosque": {
+      "max_depth": "10",
+      "max_features": "sqrt",
+      "min_samples_leaf": "5",
+      "n_estimators": "300"
+    },
+    "completo/mlp": {
+      "alpha": "1.0",
+      "hidden_layer_sizes": "(16,)",
+      "learning_rate_init": "0.001"
+    }
+  },
+  "complejidad": {
+    "operativas/dummy": {},
+    "operativas/arbol": {
+      "profundidad": 8,
+      "hojas": 40
+    },
+    "operativas/bosque": {
+      "arboles": 300,
+      "hojas_totales": 28698
+    },
+    "operativas/mlp": {
+      "parametros": 2817,
+      "iteraciones": 155
+    },
+    "completo/dummy": {},
+    "completo/arbol": {
+      "profundidad": 6,
+      "hojas": 41
+    },
+    "completo/bosque": {
+      "arboles": 300,
+      "hojas_totales": 18916
+    },
+    "completo/mlp": {
+      "parametros": 961,
+      "iteraciones": 300
+    }
+  },
+  "presupuesto_busqueda": {
+    "dummy": 1,
+    "arbol": 70,
+    "bosque": 18,
+    "mlp": 18
+  },
+  "librerias": {
+    "python": "3.12.6",
+    "scikit-learn": "1.9.1",
+    "pandas": "3.1.1",
+    "numpy": "2.5.5"
+  }
+}

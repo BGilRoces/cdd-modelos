@@ -1,0 +1,9 @@
+grupo,modelo,episodios,average_precision,roc_auc
+operativas,dummy,989,0.499494,0.500000
+operativas,arbol,989,0.819864,0.843898
+operativas,bosque,989,0.861183,0.857615
+operativas,mlp,989,0.659880,0.731242
+completo,dummy,989,0.499494,0.500000
+completo,arbol,989,0.869346,0.894536
+completo,bosque,989,0.896486,0.909655
+completo,mlp,989,0.870103,0.880121

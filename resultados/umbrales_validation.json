@@ -1,0 +1,10 @@
+{
+  "operativas/dummy": 0.5321100917431193,
+  "operativas/arbol": 0.3333333333333333,
+  "operativas/bosque": 0.4824088383940918,
+  "operativas/mlp": 0.20983516199471516,
+  "completo/dummy": 0.5321100917431193,
+  "completo/arbol": 0.5797101449275363,
+  "completo/bosque": 0.5198853167735618,
+  "completo/mlp": 0.512719759973263
+}

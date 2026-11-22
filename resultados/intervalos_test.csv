@@ -1,0 +1,17 @@
+grupo,modelo,metrica,valor,ic95_bajo,ic95_alto
+operativas,dummy,average_precision,0.490403,0.459732,0.520700
+operativas,dummy,roc_auc,0.500000,0.500000,0.500000
+operativas,arbol,average_precision,0.809956,0.772591,0.843735
+operativas,arbol,roc_auc,0.839223,0.815182,0.861579
+operativas,bosque,average_precision,0.844556,0.809606,0.874523
+operativas,bosque,roc_auc,0.850758,0.826762,0.873240
+operativas,mlp,average_precision,0.639888,0.597586,0.687351
+operativas,mlp,roc_auc,0.723221,0.692757,0.757722
+completo,dummy,average_precision,0.490403,0.459732,0.520700
+completo,dummy,roc_auc,0.500000,0.500000,0.500000
+completo,arbol,average_precision,0.855131,0.824631,0.884224
+completo,arbol,roc_auc,0.884763,0.865476,0.904860
+completo,bosque,average_precision,0.878048,0.841958,0.908758
+completo,bosque,roc_auc,0.898366,0.877753,0.918558
+completo,mlp,average_precision,0.841749,0.804840,0.880630
+completo,mlp,roc_auc,0.867912,0.845243,0.892457
