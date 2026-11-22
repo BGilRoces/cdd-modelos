@@ -22,7 +22,21 @@ python -m venv .venv
 
 Tarda unos dos minutos. Antes de entrenar verifica los hashes de los dos SQLite contra sus manifiestos, valida el esquema de las 58 variables y comprueba que los conteos de las particiones coincidan con los fijados en el protocolo. Si algo no cierra, se detiene.
 
-Tests:
+## Presentación
+
+`presentacion/presentacion.html` es la presentación final y, a la vez, la aplicación: un solo archivo que se abre con doble clic y funciona sin internet. Los modelos entrenados (árbol, bosque, MLP y Dummy) están dentro de la página y se ejecutan en el navegador. Reconstruirla después de una nueva corrida:
+
+```powershell
+.venv\Scripts\python -m modelado.presentacion
+```
+
+Antes de armarla, el script vuelve a entrenar los modelos con la configuración de `resultados/configuracion.json` y comprueba que den las mismas métricas que `resultados/`.
+
+Atajos: flechas para avanzar o retroceder, `T` inicia el cronómetro de 15 minutos (la cinta métrica del borde inferior), `N` muestra las notas del orador, `G` la vista general, `F` pantalla completa y `Esc` cierra los paneles. Los nombres del equipo se editan en la última diapositiva y quedan guardados en el navegador. Para entregar un PDF de respaldo, imprimir la página (una diapositiva por hoja).
+
+La página no incluye filas de episodios, solo los modelos y resultados agregados.
+
+## Tests
 
 ```powershell
 .venv\Scripts\python -m unittest discover -s tests -v
@@ -48,6 +62,8 @@ modelado/
   evaluacion.py      métricas, intervalos, importancia por bloque
   graficos.py        figuras
   ejecutar.py        corrida completa
+  presentacion.py    arma la presentación: exporta los modelos y los incrusta en el HTML
+presentacion/        plantilla, estilos, motor de predicción en JavaScript y el HTML final
 tests/               pruebas unitarias
 resultados/          tablas, figuras y configuración de la última corrida
 ```
