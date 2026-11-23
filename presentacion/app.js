@@ -81,7 +81,7 @@
     const n = (ids) => ids.map((i) => FAM_NOMBRE[FAM.indexOf(i)].toLowerCase()).join(" y ") || "nada";
     return "Pide " + n(e.pide) + " · el bot ofrece " + n(e.ofrece);
   };
-  const probEjemplo = (e) => motor.predecirArbol(M.arbol, vectorDe({ ...sim, pide: new Set(e.pide), ofrece: new Set(e.ofrece), hora: 15, dia: 1, texto: 1, media: 0, bot: 1, seg: 12 }));
+  const probEjemplo = (e) => motor.predecirBosque(M.bosque, vectorDe({ ...sim, pide: new Set(e.pide), ofrece: new Set(e.ofrece), hora: 15, dia: 1, texto: 1, media: 0, bot: 1, seg: 12 }));
 
   /* ---------- descripción de reglas del árbol ---------- */
   const BIN = new Set(DATOS.binarias);
@@ -148,7 +148,7 @@
   }
 
   function graficoTopK() {
-    const filas = R.top_k[GRUPO + "/arbol"];
+    const filas = R.top_k[GRUPO + "/bosque"];
     const azarPrec = R.particiones.test.positivos;
     const w = 940, h = 500, izq = 70, arriba = 50, abajo = 90, alto = h - arriba - abajo;
     const y = (v) => arriba + alto * (1 - v);
@@ -157,7 +157,7 @@
     for (let v = 0; v <= 1.0001; v += 0.25) s += `<line class="rejilla" x1="${izq}" x2="${w - 10}" y1="${y(v)}" y2="${y(v)}"/><text x="${izq - 12}" y="${y(v) + 7}" text-anchor="end" font-size="21" class="suave">${Math.round(v * 100)} %</text>`;
     filas.forEach((f, i) => {
       const bx = izq + i * gw + (gw - 2 * 70 - 10) / 2;
-      s += `<rect x="${bx}" y="${y(f.precision)}" width="70" height="${y(0) - y(f.precision)}" fill="${COL.arbol}" rx="3"/>`;
+      s += `<rect x="${bx}" y="${y(f.precision)}" width="70" height="${y(0) - y(f.precision)}" fill="${COL.bosque}" rx="3"/>`;
       s += `<text x="${bx + 35}" y="${y(f.precision) - 9}" text-anchor="middle" font-size="24" font-weight="700" class="disp">${Math.round(f.precision * 100)} %</text>`;
       s += `<rect x="${bx + 80}" y="${y(f.cobertura)}" width="70" height="${y(0) - y(f.cobertura)}" fill="${COL.verde}" rx="3"/>`;
       s += `<text x="${bx + 115}" y="${y(f.cobertura) - 9}" text-anchor="middle" font-size="24" font-weight="700" class="disp">${Math.round(f.cobertura * 100)} %</text>`;
@@ -166,13 +166,13 @@
       s += `<text x="${izq + i * gw + gw / 2}" y="${h - abajo + 68}" text-anchor="middle" font-size="21" class="suave">${num(f.chats_revisados)} chats</text>`;
     });
     s += `<line x1="${izq}" x2="${w - 10}" y1="${y(azarPrec)}" y2="${y(azarPrec)}" stroke="#18222d" stroke-width="3" stroke-dasharray="10 7" opacity=".55"/>`;
-    s += `<rect x="${izq}" y="8" width="22" height="22" fill="${COL.arbol}" rx="3"/><text x="${izq + 32}" y="27" font-size="23" font-weight="600">Acierto: terminan con una persona</text>`;
+    s += `<rect x="${izq}" y="8" width="22" height="22" fill="${COL.bosque}" rx="3"/><text x="${izq + 32}" y="27" font-size="23" font-weight="600">Acierto: terminan con una persona</text>`;
     s += `<rect x="${izq + 440}" y="8" width="22" height="22" fill="${COL.verde}" rx="3"/><text x="${izq + 472}" y="27" font-size="23" font-weight="600">Cobertura</text>`;
     return svg(w, h, s);
   }
 
   function graficoTramos() {
-    const filas = R.tramos[GRUPO + "/arbol"].filas;
+    const filas = R.tramos[GRUPO + "/bosque"].filas;
     const w = 940, h = 500, izq = 70, arriba = 40, abajo = 120, alto = h - arriba - abajo;
     const y = (v) => arriba + alto * (1 - v);
     const gw = (w - izq - 10) / filas.length;
@@ -244,7 +244,7 @@
   }
 
   /* ---------- diapositivas ---------- */
-  const top20 = () => R.top_k[GRUPO + "/arbol"].find((f) => f.fraccion === 0.2);
+  const top20 = () => R.top_k[GRUPO + "/bosque"].find((f) => f.fraccion === 0.2);
   const ap = (g, m) => R.metricas[g][m].ap;
   const etqProb = (p) => `<span class="etq-prob ${p >= 0.7 ? "alta" : p <= 0.3 ? "baja" : "media"}">${pct(p)}</span>`;
 
@@ -269,7 +269,7 @@
         <h4>Bandeja ordenada por el modelo</h4>
         ${EJEMPLOS.map((e) => ({ e, p: probEjemplo(e) })).sort((a, b) => b.p - a.p).map(({ e, p }) => `
           <div class="fila-chat"><div><div class="quien">${esc(e.nombre.split(",")[0])}</div><div class="detalle">${esc(detalleEjemplo(e))}</div></div>${etqProb(p)}</div>`).join("")}
-        <div class="pie">Cinco chats de ejemplo evaluados en vivo por el árbol. El número es la probabilidad de que intervenga una persona.</div>
+        <div class="pie">Cinco chats de ejemplo evaluados en vivo por el bosque. El número es la probabilidad de que intervenga una persona.</div>
       </div></div>`,
   });
 
@@ -396,10 +396,10 @@
           <div class="hoja"><div class="pregunta">Por qué no lo usamos</div><p class="texto" style="margin-top:8px">El anuncio se satura, se cambia el texto y el valor cambia. Un modelo que depende de eso se rompe sin avisar.</p></div>
           <div class="hoja"><div class="pregunta">Qué pasa sin ese dato</div>
             <div style="display:flex;gap:40px;margin-top:12px;align-items:flex-end">
-              <div><div class="cifra med">${dec(ap("operativas", "arbol"))}</div><div class="chico">con el largo de texto</div></div>
-              <div><div class="cifra med hilo">${dec(ap("operativas_sin_largo", "arbol"))}</div><div class="chico">sin el largo (azar: ${dec(R.metricas.operativas.dummy.ap)})</div></div>
+              <div><div class="cifra med">${dec(ap("operativas", "bosque"))}</div><div class="chico">con el largo de texto</div></div>
+              <div><div class="cifra med hilo">${dec(ap("operativas_sin_largo", "bosque"))}</div><div class="chico">sin el largo (azar: ${dec(R.metricas.operativas.dummy.ap)})</div></div>
             </div>
-            <p class="chico" style="margin-top:10px">Calidad del ranking con solo variables operativas (árbol).</p></div>
+            <p class="chico" style="margin-top:10px">Calidad del ranking con solo variables operativas (bosque).</p></div>
         </div></div>`,
   });
 
@@ -428,21 +428,23 @@
 
   slide({
     tag: "Técnica de minería", quien: 3, min: 1.3, corto: "Resultados y elección", chico: true,
-    titulo: "Sin el atajo, árbol, bosque y MLP empatan; elegimos el árbol porque se puede explicar",
-    notas: ["Mirar el último grupo de barras: 56 variables sin el largo de texto. Árbol 0,88, bosque 0,88, MLP 0,85.", "Las diferencias entre los tres están dentro del margen de error. El criterio que fijamos de antemano: ante un empate, el más simple.", "El árbol tiene 39 hojas. Se lee como reglas de producto, que es lo que la gerencia puede discutir."],
+    titulo: "Los tres rinden parecido; el bosque puntúa mejor y el árbol explica por qué",
+    notas: ["Mirar el último grupo de barras: 56 variables sin el largo de texto. Árbol 0,88, bosque 0,88, MLP 0,85: en ranking, parecidos.", "Elegimos el bosque para puntuar porque es mejor en F1, en calibración y en la finura del puntaje: el árbol da solo unos 30 valores distintos y un quinto de los chats empata, algo que no sirve para ordenar una cola.", "El árbol queda al lado para explicar: son 39 reglas de producto que la gerencia puede discutir. Es una aproximación, no es el bosque mismo.", "Combinar modelos y justificar qué aporta cada uno es parte de lo que pide la consigna."],
     html: () => {
       const c = DATOS.complejidad;
       const d = R.diferencias.find((x) => x.grupo === GRUPO && x.a === "bosque" && x.b === "arbol");
+      const g = DATOS.modelos.granularidad;
+      const mb = R.metricas[GRUPO].bosque, ma = R.metricas[GRUPO].arbol;
       return `<div class="grid cuerpo" style="grid-template-columns:1.05fr .95fr;gap:50px;align-items:start;margin-top:26px">
-        <div>${graficoAblacion()}<div class="chico">Calidad del ranking (Average Precision) en octubre. Más alto es mejor.</div></div>
+        <div>${graficoAblacion()}<div class="chico">Calidad del ranking (Average Precision) en octubre. Más alto es mejor.</div><p class="texto" style="margin-top:18px;font-size:27px">Con solo variables operativas y sin el largo de texto, ningún modelo supera al azar. Todo el valor está en qué pide el cliente y qué le ofrece el bot.</p></div>
         <div style="display:grid;gap:22px;align-content:start">
-          <div class="hoja"><div class="pregunta">Por qué el árbol y no otro</div>
+          <div class="hoja"><div class="pregunta">Bosque para puntuar, árbol para explicar</div>
             <ul class="puntos chico" style="margin-top:12px">
-              <li>Con 56 variables, árbol ${dec(ap(GRUPO, "arbol"), 3)}, bosque ${dec(ap(GRUPO, "bosque"), 3)} y MLP ${dec(ap(GRUPO, "mlp"), 3)}: diferencias dentro del margen de error (bosque menos árbol: ${d.diferencia >= 0 ? "+" : ""}${dec(d.diferencia, 3)}, intervalo ${dec(d.ic95_bajo, 3)} a ${dec(d.ic95_alto, 3)}).</li>
-              <li>Regla fijada antes de entrenar: ante un empate, el modelo más simple.</li>
-              <li>El árbol tiene ${c.arbol.hojas} hojas. El bosque, ${num(c.bosque.hojas_totales)}. La red, ${num(c.mlp.parametros)} parámetros.</li>
+              <li>En ranking son parecidos: bosque ${dec(ap(GRUPO, "bosque"), 3)}, árbol ${dec(ap(GRUPO, "arbol"), 3)}, MLP ${dec(ap(GRUPO, "mlp"), 3)} (bosque menos árbol: ${d.diferencia >= 0 ? "+" : ""}${dec(d.diferencia, 3)}, intervalo ${dec(d.ic95_bajo, 3)} a ${dec(d.ic95_alto, 3)}).</li>
+              <li>El bosque gana en F1 (${dec(mb.f1, 2)} contra ${dec(ma.f1, 2)}), en ROC-AUC y en calibración (Brier ${dec(mb.brier, 3)} contra ${dec(ma.brier, 3)}).</li>
+              <li>Ordena más fino: el árbol da ${g.arbol.distintos} puntajes distintos y el ${pct(g.arbol.mayor_empate)} de los chats empata en el mismo; el bosque da ${num(g.bosque.distintos)}.</li>
+              <li>El árbol (${c.arbol.hojas} hojas) explica qué señales de producto pesan. Es una aproximación, no es el bosque.</li>
             </ul></div>
-          <div class="cosido"><div class="pregunta">Lo que muestra el gráfico</div><p class="texto" style="margin-top:6px;font-size:27px">Con solo variables operativas y sin el largo de texto, ningún modelo supera al azar. Todo el valor está en qué pide el cliente y qué le ofrece el bot.</p></div>
         </div></div>`;
     },
   });
@@ -453,14 +455,14 @@
     notas: ["Izquierda: si el gerente revisa el 10, 20, 30 o 50 % de arriba, cuántos acierta y cuánto cubre. La línea punteada es el azar.", "Derecha: partimos los chats de octubre en cinco tramos por puntaje. El primero termina con una persona 9 de cada 10 veces; el último, casi nunca.", "Es el mismo orden en mensajes humanos y en fotos o documentos enviados por una persona."],
     html: () => `<div class="grid g2 cuerpo" style="gap:50px;margin-top:20px">
         <div><div class="pregunta" style="margin-bottom:6px">Qué pasa si se revisa solo la parte de arriba</div>${graficoTopK()}<div class="chico">Línea punteada: lo que daría el azar.</div></div>
-        <div><div class="pregunta" style="margin-bottom:6px">Chats de octubre, partidos en cinco tramos por puntaje</div>${graficoTramos()}<div class="chico">Correlación entre puntaje y mensajes humanos: ${dec(R.tramos[GRUPO + "/arbol"].spearman, 2)} (Spearman).</div></div>
+        <div><div class="pregunta" style="margin-bottom:6px">Chats de octubre, partidos en cinco tramos por puntaje</div>${graficoTramos()}<div class="chico">Correlación entre puntaje y mensajes humanos: ${dec(R.tramos[GRUPO + "/bosque"].spearman, 2)} (Spearman).</div></div>
       </div>`,
   });
 
   slide({
     clase: "app", tag: "Aplicación funcional", quien: 5, min: 2.0, corto: "Probalo", chico: true,
     titulo: "Probalo: armá un chat y mirá qué responden los modelos",
-    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa: por ejemplo el producto que ofrece el bot.", "El árbol explica su decisión: abajo aparecen las reglas que recorrió.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
+    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa: por ejemplo el producto que ofrece el bot.", "El bosque da el puntaje; abajo aparecen las reglas del árbol, que explican qué señales de producto pesan.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
     html: () => `<div class="sim">
         <div>
           <div class="bloque-sim"><h5>Ejemplos</h5><div class="ejemplos" id="s-ejemplos">${EJEMPLOS.map((e, i) => `<button type="button" data-i="${i}">${esc(e.nombre)}</button>`).join("")}</div></div>
@@ -478,21 +480,21 @@
         </div>
         <div>
           <div class="tarjetas" id="s-tarjetas"></div>
-          <div class="porque"><h5>Por qué decide así el árbol</h5><ol id="s-porque"></ol></div>
+          <div class="porque"><h5>Qué reglas recorre el árbol que explica</h5><ol id="s-porque"></ol></div>
         </div>
       </div>`,
     alEntrar: () => renderSim(),
   });
 
   slide({
-    tag: "Aplicación funcional", quien: 5, min: 0.5, corto: "El árbol por dentro", chico: true,
-    titulo: "Así decide el árbol: 39 hojas que se leen como reglas",
-    notas: ["Opcional si falta tiempo. Se puede abrir cualquier rama.", "Resaltado en amarillo: el camino que recorre el chat que armaste en la aplicación.", "Es lo que habilita una conversación con la gerencia: las reglas se pueden discutir y corregir."],
+    tag: "Aplicación funcional", quien: 5, min: 0.5, corto: "El árbol que explica", chico: true,
+    titulo: "El árbol al lado: 39 reglas que explican qué mira el bosque",
+    notas: ["Opcional si falta tiempo. Se puede abrir cualquier rama.", "Resaltado en amarillo: el camino que recorre el chat que armaste en la aplicación.", "Es lo que habilita una conversación con la gerencia: las reglas se pueden discutir y corregir. Aclarar que es una aproximación explicable, con calidad parecida al bosque pero no idéntico."],
     html: () => `<div class="grid cuerpo" style="grid-template-columns:1.3fr .7fr;gap:50px;margin-top:20px">
         <div class="arbol-vista" id="s-arbol"></div>
         <div style="display:grid;gap:24px;align-content:start">
           <div class="cosido"><div class="pregunta">Cómo leerlo</div><p class="texto" style="margin-top:6px;font-size:27px">Cada pregunta divide los chats en dos grupos. La hoja final dice qué porcentaje de esos chats terminó con una persona. Rojo: casi siempre. Verde: casi nunca.</p></div>
-          <div class="hoja"><div class="pregunta">Profundidad</div><p class="texto" style="margin-top:6px;font-size:27px">${DATOS.complejidad.arbol.profundidad} niveles como máximo, ${DATOS.complejidad.arbol.hojas} hojas. Los datos de octubre no se usaron para armarlo.</p></div>
+          <div class="hoja"><div class="pregunta">Qué es y qué no es</div><p class="texto" style="margin-top:6px;font-size:27px">Rinde parecido al bosque (${dec(ap(GRUPO, "arbol"), 2)} contra ${dec(ap(GRUPO, "bosque"), 2)}), pero no es el mismo modelo: sirve para entender, no para puntuar. ${DATOS.complejidad.arbol.hojas} hojas, ${DATOS.complejidad.arbol.profundidad} niveles como máximo.</p></div>
         </div></div>`,
     alEntrar: () => renderArbol(),
   });
@@ -503,9 +505,9 @@
     notas: ["Volver a la hipótesis y responderla en una frase.", "Decir los límites antes de que los pregunten: conducta histórica, un mes de prueba, derivaciones por producto.", "Cerrar con los próximos pasos y abrir preguntas."],
     html: () => `<div class="grid g3 cuerpo" style="gap:44px;align-items:start">
         <div class="hoja"><div class="pregunta">Lo que probamos</div><ul class="puntos chico" style="margin-top:12px">
-          <li>Qué pide el cliente y qué ofrece el bot predicen dónde interviene una persona: ${dec(ap(GRUPO, "arbol"))} contra ${dec(ap("operativas_sin_largo", "arbol"))} sin esa información.</li>
+          <li>Qué pide el cliente y qué ofrece el bot predicen dónde interviene una persona: ${dec(ap(GRUPO, "bosque"))} contra ${dec(ap("operativas_sin_largo", "bosque"))} sin esa información.</li>
           <li>Revisar el 20 % de arriba acierta ${Math.round(top20().precision * 100)} de cada 100 y cubre el ${Math.round(top20().cobertura * 100)} % de los chats atendidos.</li>
-          <li>Un árbol de ${DATOS.complejidad.arbol.hojas} hojas alcanza lo mismo que modelos más complejos.</li></ul></div>
+          <li>El bosque puntúa los chats y un árbol de ${DATOS.complejidad.arbol.hojas} hojas explica qué señales de producto pesan.</li></ul></div>
         <div class="hoja"><div class="pregunta" style="color:#cf432c">Lo que no afirmamos</div><ul class="puntos hilo chico" style="margin-top:12px">
           <li>Que esos chats necesitaran a una persona: medimos conducta histórica.</li>
           <li>Efecto sobre las ventas: no hay etiqueta de venta.</li>
@@ -525,7 +527,7 @@
     notas: ["Cada integrante presentó su área. Editar los nombres antes de la defensa (se guardan en este navegador).", "Abrir preguntas."],
     chico: true,
     html: () => {
-      const cubre = [["Dominio y problema", "cómo viaja un chat y valor para el negocio"], ["Arquitectura de la solución", "recorrido de los datos, de la fuente al puntaje"], ["Análisis exploratorio", "qué hay, qué falta y qué llamó la atención"], ["Técnica de minería", "cuatro modelos y por qué el árbol"], ["Conclusión", "visualización, hipótesis respondida y límites"], ["Aplicación funcional", "esta misma página: los modelos corren acá"]];
+      const cubre = [["Dominio y problema", "cómo viaja un chat y valor para el negocio"], ["Arquitectura de la solución", "recorrido de los datos, de la fuente al puntaje"], ["Análisis exploratorio", "qué hay, qué falta y qué llamó la atención"], ["Técnica de minería", "cuatro modelos: el bosque puntúa y el árbol explica"], ["Conclusión", "visualización, hipótesis respondida y límites"], ["Aplicación funcional", "esta misma página: los modelos corren acá"]];
       return `<div class="grid cuerpo" style="grid-template-columns:1.1fr .9fr;gap:70px;margin-top:30px">
         <div>${EQUIPO.map((e, i) => `<div class="rol-fila"><span class="disp" style="font-family:var(--display);font-variation-settings:'wdth' 82,'wght' 700;color:var(--tinta-3)">${i + 1}</span><span class="rol">${esc(e.rol)}</span><span class="fuerte" contenteditable="true" spellcheck="false" data-edit="${i}" role="textbox" aria-label="Nombre de ${esc(e.rol)}">${esc(e.nombre)}</span></div>`).join("")}</div>
         <div class="cosido"><div class="pregunta">Los seis entregables de la consigna</div><ul class="puntos chico" style="margin-top:14px">${cubre.map(([a, b]) => `<li><b>${a}:</b> ${b}.</li>`).join("")}</ul></div>
@@ -539,7 +541,7 @@
     notas: ["Material de respaldo para preguntas."],
     html: () => {
       const f = (m) => R.metricas[GRUPO][m];
-      const fila = (m) => `<tr${m === "arbol" ? ' class="mejor"' : ""}><td>${NOMBRE[m]}</td><td>${dec(f(m).ap, 3)} (${dec(f(m).ic_bajo, 3)}–${dec(f(m).ic_alto, 3)})</td><td>${dec(f(m).roc, 3)}</td><td>${dec(f(m).precision, 3)}</td><td>${dec(f(m).recall, 3)}</td><td>${dec(f(m).f1, 3)}</td><td>${dec(f(m).brier, 3)}</td></tr>`;
+      const fila = (m) => `<tr${m === "bosque" ? ' class="mejor"' : ""}><td>${NOMBRE[m]}</td><td>${dec(f(m).ap, 3)} (${dec(f(m).ic_bajo, 3)}–${dec(f(m).ic_alto, 3)})</td><td>${dec(f(m).roc, 3)}</td><td>${dec(f(m).precision, 3)}</td><td>${dec(f(m).recall, 3)}</td><td>${dec(f(m).f1, 3)}</td><td>${dec(f(m).brier, 3)}</td></tr>`;
       return `<div class="cuerpo" style="margin-top:34px"><table class="tabla"><thead><tr><th>56 variables, octubre</th><th>Average Precision (IC 95 %)</th><th>ROC-AUC</th><th>Precision</th><th>Recall</th><th>F1</th><th>Brier</th></tr></thead><tbody>${["dummy", "arbol", "bosque", "mlp"].map(fila).join("")}</tbody></table>
       <p class="chico" style="margin-top:18px">Precision, recall y F1 con umbral 0,5. Intervalos que remuestrean contactos completos (1.000 repeticiones). El Dummy marca todo como "con persona", por eso recall 1 y precision igual a la proporción.</p></div>`;
     },
@@ -711,8 +713,8 @@
       return sobre <= 0 ? "Más bajo que casi todo octubre" : "Más alto que el " + sobre + " % de octubre";
     };
     document.getElementById("s-tarjetas").innerHTML =
-      tarjeta("arbol", pos("arbol"), DATOS.complejidad.arbol.hojas + " hojas") +
-      tarjeta("bosque", votos + " de " + M.bosque.length + " árboles votan por persona", M.bosque.length + " árboles") +
+      tarjeta("bosque", votos + " de " + M.bosque.length + " árboles votan por persona", "el que puntúa · " + M.bosque.length + " árboles") +
+      tarjeta("arbol", pos("arbol"), "el que explica · " + DATOS.complejidad.arbol.hojas + " hojas") +
       tarjeta("mlp", pos("mlp"), "red de 64 y 32 neuronas") +
       tarjeta("dummy", pos("dummy"), "piso de comparación");
     document.getElementById("s-porque").innerHTML = camino.pasos.length

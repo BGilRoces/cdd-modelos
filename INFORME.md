@@ -7,7 +7,7 @@ Corrida del 22/11/2026 sobre los 3.981 episodios maduros del snapshot del 01/11.
 - Con las 58 variables del protocolo, bosque y árbol llegan a una Average Precision de 0,88 y 0,86 en test.
 - Esa cifra depende en buena parte del **largo del texto** del primer mensaje del cliente. Ese largo se concentra en unos pocos valores exactos (54 caracteres en el 29 % de los episodios, 58 en el 14 %, 48 en el 12 %), compatibles con el mensaje que el anuncio precarga en WhatsApp. Cambiar el texto del anuncio cambia ese valor y el modelo deja de funcionar. No tenemos el texto de los mensajes para confirmarlo.
 - Por eso el análisis central se hace **sin las dos variables de largo de texto** (`inbound_text_chars` y `anchor_useful_text_chars`), quedando 56 variables. Resultado: las variables operativas solas no predicen nada (Average Precision 0,50, igual que el azar) y las señales de familia de producto sí (0,88).
-- Con las 56 variables, árbol y bosque empatan. Se recomienda el **árbol**, que es más simple y explicable.
+- Con las 56 variables, árbol y bosque rinden parecido en ranking. Se recomienda el **bosque para puntuar** y el **árbol al lado para explicar**.
 
 ## Particiones
 
@@ -75,24 +75,35 @@ Los tres modelos son estadísticamente indistinguibles en test. Con las 58 varia
 
 ## Modelo recomendado
 
-**Árbol de decisión con las 56 variables** (profundidad 8, 39 hojas). Es el más simple de los tres que empatan y el protocolo pide preferirlo en ese caso. Se puede dibujar y explicar a la gerencia en términos de producto pedido y producto ofrecido. El bosque queda como alternativa si el grupo prefiere el mejor valor puntual (fue el mejor en validation, 0,946, y el mejor calibrado entre los dos de árbol). La decisión final es del grupo.
+**Bosque aleatorio con las 56 variables para puntuar, con el árbol de decisión al lado para explicar.**
+
+El bosque (300 árboles) se elige para puntuar porque, aunque en Average Precision empata con el árbol, es mejor en el resto de las medidas que importan para una cola de prioridad:
+
+- **Mejor F1 y ROC-AUC:** 0,803 contra 0,771 y 0,900 contra 0,890 (umbral 0,5).
+- **Mejor calibración:** Brier 0,155 contra 0,169.
+- **Mejor en septiembre:** Average Precision de validation 0,946 contra 0,932.
+- **Puntaje más fino.** En octubre el árbol produce solo 32 valores distintos y el 21 % de los chats cae en un único valor, de modo que una parte grande de la cola queda empatada sin orden. El bosque produce 924 valores distintos y su mayor empate es de 0,5 %. Para ordenar chats esto pesa más que la simplicidad.
+
+El árbol (profundidad 8, 39 hojas) queda como explicación: rinde parecido (Average Precision 0,875 contra 0,877) y sus reglas se leen en términos de producto pedido y producto ofrecido, que es lo que se puede discutir con la gerencia. Es una aproximación explicable, no es el bosque.
+
+Honestidad sobre la elección: la diferencia de Average Precision entre bosque y árbol no es significativa (+0,003, IC −0,014 a 0,020). El protocolo pide preferir el modelo más simple ante un desempeño parecido; se opta por combinar los dos y explicitar el compromiso: el bosque aporta el ranking fino y el árbol aporta la explicación. Combinar modelos justificando qué aporta cada uno es además una de las expectativas superadoras de la consigna. La decisión final es del grupo.
 
 ## Utilidad para quien supervisa
 
-Si el gerente revisa solo los chats con mayor puntaje del árbol (56 variables, test):
+Si el gerente revisa solo los chats con mayor puntaje del bosque (56 variables, test):
 
 | Chats revisados | Con respuesta humana | Cobertura de los chats con respuesta humana | Mejora sobre azar |
 |---|---|---|---|
-| 10 % | 94 % | 19 % | 1,9 veces |
-| 20 % | 93 % | 38 % | 1,9 veces |
-| 30 % | 93 % | 57 % | 1,9 veces |
-| 50 % | 82 % | 83 % | 1,7 veces |
+| 10 % | 90 % | 18 % | 1,8 veces |
+| 20 % | 92 % | 38 % | 1,9 veces |
+| 30 % | 94 % | 57 % | 1,9 veces |
+| 50 % | 81 % | 83 % | 1,7 veces |
 
-Con el 20 % de arriba se revisan unos 210 chats de 1.042 y casi todos terminan con una persona.
+Con el 20 % de arriba se revisan unos 210 chats de 1.042 y casi todos terminan con una persona. El árbol da casi lo mismo, pero con puntajes empatados.
 
 ## ¿El ranking ordena por atención real?
 
-Se dividió el test en cinco tramos según el puntaje. En el árbol con 56 variables, el tramo de mayor puntaje tuvo 4,1 mensajes humanos por chat y 92 % con foto o documento; el de menor puntaje, 0,2 y 2 %. La correlación de Spearman entre puntaje y cantidad de mensajes humanos es 0,62 (bosque 0,63). Es el mismo orden que con las 58 variables. Esto describe conducta histórica, no necesidad.
+Se dividió el test en cinco tramos según el puntaje. En el bosque con 56 variables, el tramo de mayor puntaje tuvo 4,2 mensajes humanos por chat y 91 % con foto o documento; el de menor puntaje, 0,2 y 1 %. La correlación de Spearman entre puntaje y cantidad de mensajes humanos es 0,63 (árbol 0,62). Es el mismo orden que con las 58 variables. Esto describe conducta histórica, no necesidad.
 
 ## Limitaciones
 

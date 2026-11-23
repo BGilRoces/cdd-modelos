@@ -116,7 +116,13 @@ def exportar_modelos(df, matriz, columnas, ajustados, mascara):
     cuantiles = {n: _redondear(np.quantile(m.predict_proba(test_x)[:, 1], np.linspace(0, 1, 101)), 5)
                  for n, m in ajustados.items()}
     dummy = ajustados["dummy"].predict_proba(test_x.iloc[:1])[0, 1]
+    granularidad = {}
+    for nombre in ("arbol", "bosque", "mlp"):
+        frecuencias = pd.Series(ajustados[nombre].predict_proba(test_x)[:, 1]).round(6).value_counts()
+        granularidad[nombre] = {"distintos": int(len(frecuencias)),
+                                "mayor_empate": round(float(frecuencias.iloc[0] / len(test_x)), 4)}
     return {
+        "granularidad": granularidad,
         "dummy": {"p": round(float(dummy), 6)},
         "arbol": exportar_arbol(ajustados["arbol"], con_muestras=True),
         "bosque": [exportar_arbol(a) for a in ajustados["bosque"].estimators_],
