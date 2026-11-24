@@ -29,6 +29,8 @@
   /* ---------- simulador: de la descripción del chat al vector de 56 variables ---------- */
   const FAM = DATOS.familias_ids;
   const FAM_NOMBRE = DATOS.familias_nombres;
+  const VISIBLES = ["broches", "ambos", "chalecos", "cintas", "elasticos"];
+  const FAM_SIM = FAM.map((id, i) => [id, FAM_NOMBRE[i]]).filter(([id]) => VISIBLES.includes(id));
   const DIAS = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
   const sim = { pide: new Set(["broches"]), ofrece: new Set(["broches"]), dia: 1, hora: 15, texto: 1, media: 0, bot: 1, seg: 12 };
 
@@ -71,11 +73,9 @@
   }
 
   const EJEMPLOS = [
-    { nombre: "Pide cintas, el bot ofrece cintas", pide: ["cintas"], ofrece: ["cintas"] },
-    { nombre: "Pide elásticos, el bot ofrece elásticos", pide: ["elasticos"], ofrece: ["elasticos"] },
-    { nombre: "Consulta sin producto", pide: [], ofrece: [] },
-    { nombre: "Pide abrojos, el bot ofrece abrojos", pide: ["abrojos"], ofrece: ["abrojos"] },
     { nombre: "Pide broches, el bot ofrece broches", pide: ["broches"], ofrece: ["broches"] },
+    { nombre: "Pide ambos, el bot ofrece ambos", pide: ["ambos"], ofrece: ["ambos"] },
+    { nombre: "Consulta sin producto", pide: [], ofrece: [] },
   ];
 
   /* ---------- descripción de reglas del árbol ---------- */
@@ -608,25 +608,23 @@
   slide({
     clase: "app", tag: "Aplicación funcional", quien: 5, min: 1.3, corto: "Probalo", chico: true,
     titulo: "Probalo: armá un chat y mirá qué responden los modelos",
-    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa. Aclarar que el número es un puntaje de prioridad (0 a 100), no una probabilidad calibrada.", "La prioridad sugerida ubica el puntaje del bosque entre los chats de octubre: un puntaje alto puede salir Media si muchos chats (los de ambos médicos y chalecos) puntúan todavía más alto.", "El bosque da el puntaje; abajo aparecen las reglas del árbol, que explican qué señales de producto pesan.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
+    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa. Aclarar que el número es un puntaje de prioridad (0 a 100), no una probabilidad calibrada.", "La prioridad sugerida ubica el puntaje del bosque entre los chats de octubre: un puntaje alto puede salir Media si muchos chats (los de ambos médicos y chalecos) puntúan todavía más alto.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
     html: () => `<div class="sim">
         <div>
-          <div class="bloque-sim"><h5>Ejemplos</h5><div class="ejemplos" id="s-ejemplos">${EJEMPLOS.map((e, i) => `<button type="button" data-i="${i}">${esc(e.nombre)}</button>`).join("")}</div></div>
-          <div class="bloque-sim"><h5>Qué pide el cliente</h5><div class="chips" id="s-pide">${FAM.map((id, i) => `<button type="button" class="chip pidio" data-id="${id}" aria-pressed="false">${esc(FAM_NOMBRE[i])}</button>`).join("")}</div></div>
-          <div class="bloque-sim"><h5>Qué le ofrece el bot</h5><div class="chips" id="s-ofrece">${FAM.map((id, i) => `<button type="button" class="chip ofrecio" data-id="${id}" aria-pressed="false">${esc(FAM_NOMBRE[i])}</button>`).join("")}</div></div>
-          <div class="campos">
+          <div class="bloque-sim"><h5><i class="paso">1</i>Elegí un ejemplo</h5><div class="ejemplos" id="s-ejemplos">${EJEMPLOS.map((e, i) => `<button type="button" data-i="${i}">${esc(e.nombre)}</button>`).join("")}</div></div>
+          <div class="bloque-sim"><h5><i class="paso">2</i>Qué pide el cliente</h5><div class="chips" id="s-pide">${FAM_SIM.map(([id, n]) => `<button type="button" class="chip pidio" data-id="${id}" aria-pressed="false">${esc(n)}</button>`).join("")}</div></div>
+          <div class="bloque-sim"><h5><i class="paso paso--azul">3</i>Qué le ofrece el bot</h5><div class="chips" id="s-ofrece">${FAM_SIM.map(([id, n]) => `<button type="button" class="chip ofrecio" data-id="${id}" aria-pressed="false">${esc(n)}</button>`).join("")}</div></div>
+          <div class="bloque-sim" style="margin-bottom:0"><h5><i class="paso paso--tinta">4</i>Cómo fue el chat</h5></div><div class="campos">
             <div class="campo"><label for="s-dia">Día</label><select id="s-dia">${DIAS.map((d, i) => `<option value="${i}">${d}</option>`).join("")}</select></div>
             <div class="campo"><label for="s-hora">Hora</label><select id="s-hora">${Array.from({ length: 24 }, (_, h) => `<option value="${h}">${String(h).padStart(2, "0")}:00</option>`).join("")}</select></div>
-            <div class="campo"><label>Horario de atención</label><div class="derivado" id="s-horario"></div></div>
-            <div class="campo"><label for="s-texto">Mensajes de texto del cliente</label><input id="s-texto" type="number" min="0" max="6" step="1"></div>
-            <div class="campo"><label for="s-media">Fotos o audios del cliente</label><input id="s-media" type="number" min="0" max="3" step="1"></div>
+            <div class="campo"><label for="s-texto">Mensajes del cliente</label><input id="s-texto" type="number" min="0" max="6" step="1"></div>
             <div class="campo"><label for="s-bot">Mensajes del bot</label><input id="s-bot" type="number" min="1" max="5" step="1"></div>
-            <div class="campo"><label for="s-seg">Duración hasta la respuesta del bot (s)</label><input id="s-seg" type="number" min="0" max="3600" step="5"></div>
+            <div class="campo campo--ancho"><label for="s-media">Fotos o audios del cliente</label><input id="s-media" type="number" min="0" max="3" step="1"></div>
+            <div class="campo campo--ancho"><label for="s-seg">Segundos hasta que responde el bot</label><input id="s-seg" type="number" min="0" max="3600" step="5"></div>
           </div>
         </div>
         <div>
-          <h5>Puntaje de prioridad de cada modelo, de 0 a 100 (el corte está en 50)</h5><div class="tarjetas" id="s-tarjetas"></div>
-          <div class="porque"><h5>Qué reglas recorre el árbol que explica</h5><ol id="s-porque"></ol></div>
+          <div class="resultado" id="s-tarjetas"></div>
         </div>
       </div>`,
     alEntrar: () => renderSim(),
@@ -891,30 +889,32 @@
     document.querySelectorAll("#s-ofrece .chip").forEach((b) => { const on = sim.ofrece.has(b.dataset.id); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
     const set = (id, v) => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = v; };
     set("s-dia", sim.dia); set("s-hora", sim.hora); set("s-texto", sim.texto); set("s-media", sim.media); set("s-bot", sim.bot); set("s-seg", sim.seg);
-    document.getElementById("s-horario").textContent = enHorario(sim.dia, sim.hora) ? "Sí" : "No";
+    const horario = document.getElementById("s-horario");
+    if (horario) horario.textContent = enHorario(sim.dia, sim.hora) ? "Sí" : "No";
     const x = vectorDe(sim);
     const p = motor.predecirTodos(M, x);
-    const camino = motor.caminoArbol(M.arbol, x);
-    const votos = motor.votosBosque(M.bosque, x);
     const nivelDe = (arriba) => (arriba <= 30 ? { clase: "alta", texto: "Alta" } : arriba <= 50 ? { clase: "media", texto: "Media" } : arriba <= 70 ? { clase: "baja", texto: "Baja" } : { clase: "base", texto: "Base" });
     const prioridad = nivelDe(motor.posicionEnRanking(M.cuantiles_test.bosque, p.bosque));
-    const tarjeta = (id, extra, sub) => {
-      const v = p[id];
-      return `<div class="modelo ${id}"><div class="nombre"><span>${NOMBRE[id]}</span><small>${sub}</small></div><div class="prob">${Math.round(v * 100)}</div><div class="barra"><i style="width:${v * 100}%"></i></div><div class="veredicto ${v >= 0.5 ? "si" : "no"}">${v >= 0.5 ? "Sobre el corte de 50" : "Bajo el corte de 50"}</div>${id === "bosque" ? `<div class="prio ${prioridad.clase}">Prioridad sugerida: ${prioridad.texto}</div>` : ""}<div class="extra">${extra}</div></div>`;
+    const NIV = { alta: ["Alta", "#cf432c", "#fff"], media: ["Media", "#d9822b", "#fff"], baja: ["Baja", "#f2c230", "#18222d"], base: ["Base", "#1d5c4e", "#fff"] };
+    const arriba = (id) => motor.posicionEnRanking(M.cuantiles_test[id], p[id]);
+    const total = R.particiones.test.episodios;
+    const aB = arriba("bosque"), sobreB = Math.max(0, 100 - aB);
+    const [nomN, colN, txtN] = NIV[prioridad.clase];
+    const zonas = [["alta", 30], ["media", 20], ["baja", 20], ["base", 30]];
+    const tira = zonas.map(([k, w]) => `<div style="width:${w}%;background:${NIV[k][1]};color:${NIV[k][2]};opacity:${k === prioridad.clase ? 1 : .35}">${NIV[k][0]}</div>`).join("");
+    const fila = (id, rol) => {
+      const [n, c, t] = NIV[nivelDe(arriba(id)).clase];
+      const chip = id === "dummy" ? `<span class="res-nota">No mira el chat</span>` : `<span class="res-chip" style="background:${c};color:${t}">${n}</span>`;
+      return `<div class="res-fila"><div><b>${NOMBRE[id]}</b><span>${rol}</span></div><div class="res-num">${Math.round(p[id] * 100)}</div>${chip}</div>`;
     };
-    const pos = (id) => {
-      if (id === "dummy") return "No mira el chat: repite lo que vio";
-      const sobre = 100 - motor.posicionEnRanking(M.cuantiles_test[id], p[id]);
-      return sobre <= 0 ? "Más bajo que casi todo octubre" : "Más alto que el " + sobre + " % de octubre";
-    };
-    document.getElementById("s-tarjetas").innerHTML =
-      tarjeta("bosque", votos + " de " + M.bosque.length + " árboles votan por persona", "el que puntúa · " + M.bosque.length + " árboles") +
-      tarjeta("arbol", pos("arbol"), "el que explica · " + DATOS.complejidad.arbol.hojas + " hojas") +
-      tarjeta("mlp", pos("mlp"), "red de 64 y 32 neuronas") +
-      tarjeta("dummy", pos("dummy"), "piso de comparación");
-    document.getElementById("s-porque").innerHTML = camino.pasos.length
-      ? camino.pasos.map((paso) => `<li><b>${esc(reglaTexto(paso))}</b></li>`).join("") + `<li>Resultado: ${pct(camino.probabilidad)} de los ${num(camino.muestras)} chats parecidos terminaron con una persona.</li>`
-      : "<li>El árbol no hizo ninguna pregunta.</li>";
+    document.getElementById("s-tarjetas").innerHTML = `
+      <div class="res-tit">Resultado para este chat</div>
+      <div class="res-hero">
+        <div class="res-cab"><span class="res-niv" style="background:${colN};color:${txtN}">Prioridad ${nomN}</span><span class="res-punt">Puntaje del bosque <b>${Math.round(p.bosque * 100)}</b> de 100</span></div>
+        <div class="res-cola"><div class="res-tira">${tira}</div><div class="res-marca" style="left:${Math.min(99, Math.max(1, aB))}%"><i></i></div></div>
+        <div class="res-pie">Los ${num(total)} chats de octubre, del puntaje más alto (izquierda) al más bajo. Este chat supera al ${sobreB} % de ellos.</div>
+      </div>
+      <div class="res-otros"><div class="res-sub">Lo que dicen los otros modelos</div>${fila("arbol", "el que explica")}${fila("mlp", "red neuronal")}${fila("dummy", "piso de comparación")}</div>`;
   }
   function renderArbol() {
     const x = vectorDe(sim);
