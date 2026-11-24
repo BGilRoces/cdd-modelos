@@ -56,3 +56,28 @@ def composicion_entrenamiento(df, particion):
     """Parte de cada mes dentro de cada partición."""
     mes = df.anchor_at.dt.to_period("M").astype(str).rename("mes")
     return pd.crosstab(mes, particion.rename("particion"))
+
+
+# Niveles de la cola de prioridad: posición en el ranking, no probabilidad (los puntajes no están calibrados).
+NIVELES = (("Alta", 0.0, 0.3), ("Media", 0.3, 0.5), ("Baja", 0.5, 0.7), ("Base", 0.7, 1.0))
+
+
+def niveles_de_prioridad(y, score, niveles=NIVELES):
+    """Cuántos chats de cada nivel terminan con una persona, según su posición en el ranking."""
+    y = np.asarray(y)
+    score = np.asarray(score)
+    azar = np.random.default_rng(cfg.SEMILLA).permutation(len(y))
+    orden = np.lexsort((azar, -score))
+    posicion = np.empty(len(y))
+    posicion[orden] = np.arange(len(y)) / len(y)
+    total = y.sum()
+    filas = []
+    for nombre, desde, hasta in niveles:
+        marca = (posicion >= desde) & (posicion < hasta)
+        k = int(y[marca].sum())
+        filas.append({
+            "nivel": nombre, "desde": desde, "hasta": hasta, "chats": int(marca.sum()),
+            "con_persona": k, "tasa": k / marca.sum(),
+            "parte_de_los_con_persona": k / total,
+        })
+    return pd.DataFrame(filas)

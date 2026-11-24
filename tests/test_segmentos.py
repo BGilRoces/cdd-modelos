@@ -72,5 +72,24 @@ class Composicion(unittest.TestCase):
         self.assertEqual(t.set_index("mes").loc["2026-08", "train"], 2)
 
 
+class NivelesDePrioridad(unittest.TestCase):
+    def test_los_cuatro_niveles_reparten_todos_los_chats_en_30_20_20_30(self):
+        y = np.array([1] * 40 + [0] * 60)
+        score = np.linspace(1, 0, 100)
+        t = segmentos.niveles_de_prioridad(y, score)
+        self.assertEqual(t.nivel.tolist(), ["Alta", "Media", "Baja", "Base"])
+        self.assertEqual(t.chats.tolist(), [30, 20, 20, 30])
+        self.assertEqual(t.chats.sum(), 100)
+        self.assertEqual(t.con_persona.sum(), 40)
+
+    def test_con_un_buen_ranking_la_tasa_baja_de_un_nivel_al_siguiente(self):
+        azar = np.random.default_rng(3)
+        score = azar.random(1000)
+        y = (azar.random(1000) < score).astype(int)
+        t = segmentos.niveles_de_prioridad(y, score)
+        self.assertTrue(t.tasa.is_monotonic_decreasing)
+        self.assertAlmostEqual(t.parte_de_los_con_persona.sum(), 1.0)
+
+
 if __name__ == "__main__":
     unittest.main()

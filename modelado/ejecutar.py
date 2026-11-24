@@ -144,6 +144,10 @@ def correr(salida):
         resto = ~impulsado_test
         tabla = evaluacion.cobertura_top_k(y_test[resto], s["test"][resto])
         cobertura_resto.append(tabla.assign(modelo=f"{grupo}/{nombre}"))
+    niveles = pd.concat([
+        segmentos.niveles_de_prioridad(y[mascara[particion]], s[particion]).assign(particion=particion, grupo=grupo, modelo=nombre)
+        for particion in ("validation", "test") for (grupo, nombre), s in scores.items()
+    ])
     evolucion = segmentos.evolucion_mensual(df, matriz)
     composicion = segmentos.composicion_entrenamiento(df, df.particion)
 
@@ -171,6 +175,7 @@ def correr(salida):
     _guardar_csv(pd.DataFrame(por_segmento), salida / "segmentos_test.csv")
     _guardar_csv(pd.concat(cobertura_resto), salida / "cobertura_top_k_resto_test.csv")
     _guardar_csv(evolucion, salida / "evolucion_mensual.csv")
+    _guardar_csv(niveles, salida / "niveles_prioridad.csv")
     _guardar_csv(composicion.reset_index(), salida / "composicion_por_mes.csv")
 
     graficos.comparacion_ap(metricas, salida / "figuras" / "01_average_precision.png")

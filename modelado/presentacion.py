@@ -141,8 +141,11 @@ def resultados_agregados(df, matriz, salida):
     largo = []
     for valor, cant in matriz.inbound_text_chars.value_counts().head(3).items():
         marca = matriz.inbound_text_chars == valor
+        pedidos = {f: float((matriz.loc[marca, f"requested_{f}"] > 0).mean()) for f in cfg.FAMILIAS}
+        familia = max(pedidos, key=pedidos.get)
         largo.append({"caracteres": int(valor), "episodios": int(cant),
-                      "porcentaje": round(float(cant) / len(df), 4), "tasa": round(float(y[marca].mean()), 4)})
+                      "porcentaje": round(float(cant) / len(df), 4), "tasa": round(float(y[marca].mean()), 4),
+                      "familia": NOMBRES_FAMILIAS[familia], "parte_familia": round(pedidos[familia], 4)})
     metricas = pd.read_csv(salida / "metricas.csv")
     prueba = metricas[(metricas.particion == "test") & (metricas.umbral_tipo == "fijo")]
     intervalos = pd.read_csv(salida / "intervalos_test.csv")
@@ -152,7 +155,7 @@ def resultados_agregados(df, matriz, salida):
         for _, f in prueba[prueba.grupo == grupo].iterrows():
             i = intervalos[(intervalos.grupo == grupo) & (intervalos.modelo == f.modelo) & (intervalos.metrica == "average_precision")]
             tabla[grupo][f.modelo] = {
-                "ap": round(f.average_precision, 4), "roc": round(f.roc_auc, 4),
+                "ap": round(f.average_precision, 4), "roc": round(f.roc_auc, 4), "accuracy": round(f.accuracy, 4),
                 "precision": round(f.precision, 4), "recall": round(f.recall, 4), "f1": round(f.f1, 4),
                 "brier": round(f.brier, 4), "tn": int(f.tn), "fp": int(f.fp), "fn": int(f.fn), "tp": int(f.tp),
                 "ic_bajo": round(float(i.ic95_bajo.iloc[0]), 4), "ic_alto": round(float(i.ic95_alto.iloc[0]), 4),
@@ -178,9 +181,12 @@ def resultados_agregados(df, matriz, salida):
     top_resto = pd.read_csv(salida / "cobertura_top_k_resto_test.csv")
     top_resto = top_resto[top_resto.modelo == GRUPO + "/bosque"].drop(columns="modelo").round(4).to_dict("records")
     meses = pd.read_csv(salida / "evolucion_mensual.csv").round(4).to_dict("records")
+    niv = pd.read_csv(salida / "niveles_prioridad.csv")
+    niv = niv[(niv.grupo == GRUPO) & (niv.modelo == "bosque")]
+    niveles = {p: g.drop(columns=["grupo", "modelo", "particion"]).round(4).to_dict("records") for p, g in niv.groupby("particion")}
     composicion = pd.read_csv(salida / "composicion_por_mes.csv").to_dict("records")
     return {
-        "segmentos": segmentos_, "top_k_resto": top_resto, "meses": meses, "composicion": composicion,
+        "segmentos": segmentos_, "niveles": niveles, "top_k_resto": top_resto, "meses": meses, "composicion": composicion,
         "familias": familias, "largo_texto": largo, "metricas": tabla, "top_k": top, "tramos": tramos,
         "diferencias": diferencias, "aporte": aporte, "bloques": bloques, "particiones": mensual,
         "embudo": {"mensajes_fuente": 47403, "mensajes": 35294, "contactos": 3712, "sesiones": 4570,

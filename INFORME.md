@@ -149,6 +149,19 @@ Solo hay 84 chats con persona en este grupo, así que estos porcentajes tienen m
 - De agosto a octubre cambia qué se promociona (ambos pasa de 32 a 43 y a 35 %) y con eso cambia la proporción con persona (51, 60 y 49 %). Es consistente con una rotación de campañas, aunque estos datos no permiten confirmarlo.
 - Hay que reentrenar cuando cambien las campañas.
 
+## Niveles de prioridad
+
+La cola de chats pendientes se divide por posición, no por probabilidad (los puntajes no están calibrados): Alta (primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el 30 % restante). Porcentaje de chats de cada nivel que terminan con una persona:
+
+| Nivel | Septiembre | Octubre |
+|---|---|---|
+| Alta | 98 | 94 |
+| Media | 87 | 62 |
+| Baja | 53 | 31 |
+| Base | 15 | 7 |
+
+Los cortes son una propuesta a validar con la gerencia. Detalle por grupo de variables y modelo en `niveles_prioridad.csv`.
+
 ## Cómo leer el puntaje
 
 El número que devuelve cada modelo (de 0 a 100 en la aplicación) es un **puntaje de prioridad**: ordena bien los chats, pero no es una probabilidad calibrada. En octubre el bosque predice en promedio más intervención humana que la real y exagera en los valores intermedios. Para uso real habría que recalibrarlo con cada período.
@@ -180,6 +193,7 @@ El número que devuelve cada modelo (de 0 a 100 en la aplicación) es un **punta
 | `cobertura_top_k_resto_test.csv` | qué pasa si se revisa solo la parte de arriba dentro del resto |
 | `evolucion_mensual.csv` | volumen, anuncios, mezcla de productos y respuesta humana por mes |
 | `composicion_por_mes.csv` | cuántos chats de cada mes hay en train, validation, test y purgados |
+| `niveles_prioridad.csv` | tasa con persona por nivel de prioridad (validation y test), por grupo y modelo |
 | `busqueda.csv` | las 107 configuraciones probadas por grupo de variables |
 | `configuracion.json` | configuraciones elegidas, particiones, hashes, versiones |
 | `figuras/` | gráficos 01 a 11 |

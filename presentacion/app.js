@@ -2,7 +2,7 @@
   "use strict";
   const R = DATOS.resultados;
   const M = DATOS.modelos;
-  const COL = { dummy: "#8a94a0", arbol: "#2f5da8", bosque: "#6b54a6", mlp: "#d9822b", verde: "#1d5c4e", hilo: "#cf432c", cinta: "#f2c230" };
+  const COL = { dummy: "#8a94a0", arbol: "#2f5da8", bosque: "#b0457b", mlp: "#d9822b", verde: "#1d5c4e", hilo: "#cf432c", cinta: "#f2c230" };
   const NOMBRE = { dummy: "Dummy", arbol: "Árbol", bosque: "Bosque", mlp: "MLP" };
   const GRUPO = "completo_sin_largo";
 
@@ -77,11 +77,6 @@
     { nombre: "Pide abrojos, el bot ofrece abrojos", pide: ["abrojos"], ofrece: ["abrojos"] },
     { nombre: "Pide broches, el bot ofrece broches", pide: ["broches"], ofrece: ["broches"] },
   ];
-  const detalleEjemplo = (e) => {
-    const n = (ids) => ids.map((i) => FAM_NOMBRE[FAM.indexOf(i)].toLowerCase()).join(" y ") || "nada";
-    return "Pide " + n(e.pide) + " · el bot ofrece " + n(e.ofrece);
-  };
-  const probEjemplo = (e) => motor.predecirBosque(M.bosque, vectorDe({ ...sim, pide: new Set(e.pide), ofrece: new Set(e.ofrece), hora: 15, dia: 1, texto: 1, media: 0, bot: 1, seg: 12 }));
 
   /* ---------- descripción de reglas del árbol ---------- */
   const BIN = new Set(DATOS.binarias);
@@ -97,7 +92,7 @@
 
   function graficoFamilias() {
     const filas = R.familias.filter((f) => f.tasa !== null).sort((a, b) => b.tasa - a.tasa);
-    const w = 1040, fila = 44, x0 = 330, ancho = 560, h = filas.length * fila + 60;
+    const w = 1040, fila = 44, x0 = 330, ancho = 560, h = filas.length * fila + 84;
     let s = "";
     s += `<line class="rejilla" x1="${x0 + ancho / 2}" x2="${x0 + ancho / 2}" y1="20" y2="${h - 40}"/>`;
     s += `<text class="chico suave" x="${x0 + ancho / 2}" y="14" text-anchor="middle" font-size="21">mitad de los chats</text>`;
@@ -112,17 +107,18 @@
       s += `<text x="${w - 4}" y="${y + 23}" text-anchor="end" font-size="22" class="suave">${num(f.episodios)} chats${chica ? "*" : ""}</text>`;
       s += `</g>`;
     });
+    s += `<text x="0" y="${h - 8}" font-size="22" class="suave">* Menos de 30 chats: no sacar conclusiones.</text>`;
     return svg(w, h, s);
   }
 
   function graficoAblacion() {
-    const w = 1040, h = 560, izq = 72, arriba = 54, abajo = 104, alto = h - arriba - abajo;
+    const w = 1040, h = 610, izq = 72, arriba = 54, abajo = 150, alto = h - arriba - abajo;
     const y = (v) => arriba + alto * (1 - (v - 0.4) / 0.6);
     const grupos = [
-      ["operativas", ["10 operativas"]],
-      ["operativas_sin_largo", ["9 operativas", "sin largo de texto"]],
-      ["completo", ["58 variables", "(protocolo)"]],
-      ["completo_sin_largo", ["56 variables", "sin largo de texto"]],
+      ["operativas", ["Operativas +", "largo del mensaje", "(10)"]],
+      ["operativas_sin_largo", ["Solo operativas", "(9)"]],
+      ["completo", ["Todas", "(58, protocolo)"]],
+      ["completo_sin_largo", ["Todas menos", "largo de texto", "(56)"]],
     ];
     const gw = (w - izq - 10) / 4;
     let s = "";
@@ -138,7 +134,7 @@
         s += `<rect x="${bx}" y="${y(v)}" width="60" height="${y(0.4) - y(v)}" fill="${COL[m]}" rx="3"/>`;
         s += `<text x="${bx + 30}" y="${y(v) - 9}" text-anchor="middle" font-size="24" font-weight="700" class="disp">${dec(v, 2)}</text>`;
       });
-      etiquetas.forEach((t, ti) => { s += `<text x="${izq + gi * gw + gw / 2}" y="${h - abajo + 38 + ti * 28}" text-anchor="middle" font-size="25" font-weight="${ti ? 400 : 600}">${esc(t)}</text>`; });
+      etiquetas.forEach((t, ti) => { s += `<text x="${izq + gi * gw + gw / 2}" y="${h - abajo + 36 + ti * 29}" text-anchor="middle" font-size="25" font-weight="${ti === 0 ? 600 : 400}">${esc(t)}</text>`; });
     });
     const azar = R.metricas.completo_sin_largo.dummy.ap;
     s += `<line x1="${izq}" x2="${w - 10}" y1="${y(azar)}" y2="${y(azar)}" stroke="#18222d" stroke-width="3" stroke-dasharray="10 7"/>`;
@@ -147,61 +143,39 @@
     return svg(w, h, s);
   }
 
-  function graficoTopK() {
-    const filas = R.top_k[GRUPO + "/bosque"];
-    const azarPrec = R.particiones.test.positivos;
-    const w = 940, h = 500, izq = 70, arriba = 50, abajo = 90, alto = h - arriba - abajo;
-    const y = (v) => arriba + alto * (1 - v);
-    const gw = (w - izq - 10) / filas.length;
+  function graficoModelos() {
+    const w = 1000, h = 540, izq = 72, arriba = 30, abajo = 80, alto = h - arriba - abajo;
+    const y = (v) => arriba + alto * (1 - (v - 0.4) / 0.6);
+    const orden = ["dummy", "arbol", "bosque", "mlp"], gw = (w - izq - 10) / orden.length;
     let s = "";
-    for (let v = 0; v <= 1.0001; v += 0.25) s += `<line class="rejilla" x1="${izq}" x2="${w - 10}" y1="${y(v)}" y2="${y(v)}"/><text x="${izq - 12}" y="${y(v) + 7}" text-anchor="end" font-size="21" class="suave">${Math.round(v * 100)} %</text>`;
-    filas.forEach((f, i) => {
-      const bx = izq + i * gw + (gw - 2 * 70 - 10) / 2;
-      s += `<rect x="${bx}" y="${y(f.precision)}" width="70" height="${y(0) - y(f.precision)}" fill="${COL.bosque}" rx="3"/>`;
-      s += `<text x="${bx + 35}" y="${y(f.precision) - 9}" text-anchor="middle" font-size="24" font-weight="700" class="disp">${Math.round(f.precision * 100)} %</text>`;
-      s += `<rect x="${bx + 80}" y="${y(f.cobertura)}" width="70" height="${y(0) - y(f.cobertura)}" fill="${COL.verde}" rx="3"/>`;
-      s += `<text x="${bx + 115}" y="${y(f.cobertura) - 9}" text-anchor="middle" font-size="24" font-weight="700" class="disp">${Math.round(f.cobertura * 100)} %</text>`;
-      s += `<line x1="${bx + 80}" x2="${bx + 150}" y1="${y(f.fraccion)}" y2="${y(f.fraccion)}" stroke="#18222d" stroke-width="3" stroke-dasharray="6 5"/>`;
-      s += `<text x="${izq + i * gw + gw / 2}" y="${h - abajo + 40}" text-anchor="middle" font-size="26" font-weight="600">Primeros ${Math.round(f.fraccion * 100)} %</text>`;
-      s += `<text x="${izq + i * gw + gw / 2}" y="${h - abajo + 68}" text-anchor="middle" font-size="21" class="suave">${num(f.chats_revisados)} chats</text>`;
+    for (let v = 0.4; v <= 1.0001; v += 0.1) {
+      s += `<line class="rejilla" x1="${izq}" x2="${w - 10}" y1="${y(v)}" y2="${y(v)}"/><text x="${izq - 12}" y="${y(v) + 7}" text-anchor="end" font-size="21" class="suave">${dec(v, 1)}</text>`;
+    }
+    orden.forEach((m, i) => {
+      const r = R.metricas[GRUPO][m], cx = izq + i * gw + gw / 2;
+      s += `<rect x="${cx - 62}" y="${y(r.ap)}" width="124" height="${y(0.4) - y(r.ap)}" fill="${COL[m]}" rx="4"/>`;
+      s += `<line x1="${cx}" x2="${cx}" y1="${y(r.ic_alto)}" y2="${y(r.ic_bajo)}" stroke="#18222d" stroke-width="3"/><line x1="${cx - 14}" x2="${cx + 14}" y1="${y(r.ic_alto)}" y2="${y(r.ic_alto)}" stroke="#18222d" stroke-width="3"/><line x1="${cx - 14}" x2="${cx + 14}" y1="${y(r.ic_bajo)}" y2="${y(r.ic_bajo)}" stroke="#18222d" stroke-width="3"/>`;
+      s += `<text x="${cx}" y="${y(r.ic_alto) - 12}" text-anchor="middle" font-size="30" font-weight="700" class="disp">${dec(r.ap, 2)}</text>`;
+      s += `<text x="${cx}" y="${h - abajo + 40}" text-anchor="middle" font-size="28" font-weight="600">${NOMBRE[m]}</text>`;
     });
-    s += `<line x1="${izq}" x2="${w - 10}" y1="${y(azarPrec)}" y2="${y(azarPrec)}" stroke="#18222d" stroke-width="3" stroke-dasharray="10 7" opacity=".55"/>`;
-    s += `<rect x="${izq}" y="8" width="22" height="22" fill="${COL.bosque}" rx="3"/><text x="${izq + 32}" y="27" font-size="23" font-weight="600">Acierto: terminan con una persona</text>`;
-    s += `<rect x="${izq + 440}" y="8" width="22" height="22" fill="${COL.verde}" rx="3"/><text x="${izq + 472}" y="27" font-size="23" font-weight="600">Cobertura</text>`;
     return svg(w, h, s);
   }
 
-  function graficoTramos() {
+  function graficoGrupos() {
     const filas = R.tramos[GRUPO + "/bosque"].filas;
-    const w = 940, h = 500, izq = 70, arriba = 40, abajo = 120, alto = h - arriba - abajo;
+    const w = 1000, h = 470, izq = 60, arriba = 40, abajo = 100, alto = h - arriba - abajo;
     const y = (v) => arriba + alto * (1 - v);
     const gw = (w - izq - 10) / filas.length;
     let s = "";
-    for (let v = 0; v <= 1.0001; v += 0.25) s += `<line class="rejilla" x1="${izq}" x2="${w - 10}" y1="${y(v)}" y2="${y(v)}"/><text x="${izq - 12}" y="${y(v) + 7}" text-anchor="end" font-size="21" class="suave">${Math.round(v * 100)} %</text>`;
+    for (let v = 0; v <= 1.0001; v += 0.25) s += `<line class="rejilla" x1="${izq}" x2="${w - 10}" y1="${y(v)}" y2="${y(v)}"/><text x="${izq - 12}" y="${y(v) + 7}" text-anchor="end" font-size="21" class="suave">${Math.round(v * 100)}</text>`;
     filas.forEach((f, i) => {
-      const bx = izq + i * gw + (gw - 96) / 2;
+      const cx = izq + i * gw + gw / 2;
       const color = f.tasa_respuesta > 0.6 ? COL.hilo : f.tasa_respuesta < 0.3 ? COL.verde : COL.dummy;
-      s += `<rect x="${bx}" y="${y(f.tasa_respuesta)}" width="96" height="${y(0) - y(f.tasa_respuesta)}" fill="${color}" rx="3"/>`;
-      s += `<text x="${bx + 48}" y="${y(f.tasa_respuesta) - 9}" text-anchor="middle" font-size="26" font-weight="700" class="disp">${Math.round(f.tasa_respuesta * 100)} %</text>`;
-      s += `<text x="${bx + 48}" y="${h - abajo + 34}" text-anchor="middle" font-size="26" font-weight="600">${esc(f.tramo)}</text>`;
-      s += `<text x="${bx + 48}" y="${h - abajo + 64}" text-anchor="middle" font-size="22" class="suave">${dec(f.mensajes_humanos, 1)} mensajes</text>`;
-      s += `<text x="${bx + 48}" y="${h - abajo + 90}" text-anchor="middle" font-size="22" class="suave">${Math.round(f.con_adjuntos * 100)} % con foto</text>`;
-    });
-    return svg(w, h, s);
-  }
-
-  function graficoLargo() {
-    const filas = R.largo_texto;
-    const w = 860, fila = 96, h = filas.length * fila + 44;
-    let s = `<text x="256" y="24" font-size="22" class="suave">Parte de todos los chats</text><text x="560" y="24" font-size="22" class="suave">Chats con una persona</text>`;
-    filas.forEach((f, i) => {
-      const y = 48 + i * fila;
-      s += `<text x="236" y="${y + 38}" text-anchor="end" font-size="29" font-weight="700" class="disp">${f.caracteres} caracteres</text>`;
-      s += `<rect x="256" y="${y + 6}" width="${f.porcentaje * 560}" height="46" fill="${COL.dummy}" rx="3"/>`;
-      s += `<text x="${256 + f.porcentaje * 560 + 10}" y="${y + 40}" font-size="26" font-weight="600">${pct(f.porcentaje)}</text>`;
-      const color = f.tasa > 0.6 ? COL.hilo : f.tasa < 0.35 ? COL.verde : COL.dummy;
-      s += `<rect x="560" y="${y + 6}" width="${f.tasa * 200}" height="46" fill="${color}" rx="3"/>`;
-      s += `<text x="${560 + f.tasa * 200 + 10}" y="${y + 40}" font-size="26" font-weight="700" class="disp">${pct(f.tasa)}</text>`;
+      s += `<rect x="${cx - 58}" y="${y(f.tasa_respuesta)}" width="116" height="${y(0) - y(f.tasa_respuesta)}" fill="${color}" rx="4"/>`;
+      s += `<text x="${cx}" y="${y(f.tasa_respuesta) - 11}" text-anchor="middle" font-size="36" font-weight="700" class="disp">${Math.round(f.tasa_respuesta * 100)} %</text>`;
+      const nombres = ["Más alto", "Alto", "Medio", "Bajo", "Más bajo"];
+      s += `<text x="${cx}" y="${h - abajo + 40}" text-anchor="middle" font-size="28" font-weight="700">${nombres[i] || "Tramo " + (i + 1)}</text>`;
+      s += `<text x="${cx}" y="${h - abajo + 70}" text-anchor="middle" font-size="22" class="suave">${i * 20}–${(i + 1) * 20} %</text>`;
     });
     return svg(w, h, s);
   }
@@ -246,243 +220,367 @@
   /* ---------- diapositivas ---------- */
   const top20 = () => R.top_k[GRUPO + "/bosque"].find((f) => f.fraccion === 0.2);
   const ap = (g, m) => R.metricas[g][m].ap;
-  const etqProb = (p) => `<span class="etq-prob ${p >= 0.7 ? "alta" : p <= 0.3 ? "baja" : "media"}">${Math.round(p * 100)}</span>`;
 
   function etiquetaHTML(texto, quien) {
     const q = quien === null ? "" : `<span class="etq-quien">Presenta <b data-quien="${quien}">${esc(EQUIPO[quien].nombre)}</b></span>`;
     return `<div class="etiqueta"><span class="etq-nombre">${esc(texto)}</span>${q}</div>`;
   }
 
+  function lineaDeTiempo() {
+    const P = R.particiones, total = P.train.episodios + P.validation.episodios + P.test.episodios + P.purgado.episodios;
+    const ancho = 1680, purga = P.purgado.episodios / 2;
+    const w = (n) => Math.max(26, (n / total) * ancho);
+    const tramos = [
+      ["Train", `hasta el 31/8 · ${num(P.train.episodios)} chats`, P.train.episodios, "#1d5c4e", "#fff", "El modelo aprende acá"],
+      ["", "", purga, "#8a94a0", "#fff", "purga"],
+      ["Validation", `septiembre · ${num(P.validation.episodios)} chats`, P.validation.episodios, "#f2c230", "#18222d", "Se elige la configuración"],
+      ["", "", purga, "#8a94a0", "#fff", "purga"],
+      ["Test", `octubre · ${num(P.test.episodios)} chats`, P.test.episodios, "#cf432c", "#fff", "Nota final, una sola vez"],
+    ];
+    const suma = tramos.reduce((a, t) => a + w(t[2]), 0), k = ancho / suma;
+    let x = 0, s = "";
+    for (const [n, d, cant, fondo, texto, leyenda] of tramos) {
+      const ww = w(cant) * k;
+      s += `<rect x="${x}" y="22" width="${ww - 4}" height="78" fill="${fondo}" rx="4"/>`;
+      if (n) {
+        s += `<text x="${x + 18}" y="58" font-size="28" font-weight="700" class="disp" style="fill:${texto}">${n}</text>`;
+        s += `<text x="${x + 18}" y="88" font-size="22" style="fill:${texto}">${d}</text>`;
+        s += `<text x="${x + 2}" y="128" font-size="22" class="suave">${leyenda}</text>`;
+      }
+      x += ww;
+    }
+    return `<div style="margin-top:6px">${svg(ancho, 140, s)}</div>`;
+  }
+
+  function matrizHTML(id) {
+    const r = R.metricas[GRUPO][id], max = Math.max(r.tn, r.fp, r.fn, r.tp);
+    const cel = (v, acierto) => {
+      const a = 0.14 + 0.7 * (v / max);
+      const fondo = acierto ? `rgba(29,92,78,${a})` : `rgba(207,67,44,${a})`;
+      return `<div class="mx-c" style="background:${fondo};color:${a > 0.5 ? "#fff" : "#18222d"}">${num(v)}</div>`;
+    };
+    return `<div class="mx"><div class="mx-n" style="color:${id === "dummy" ? "#46535f" : COL[id]}">${NOMBRE[id]}</div><div class="mx-g">
+      <span></span><span class="mx-h">Dice: sin persona</span><span class="mx-h">Dice: con persona</span>
+      <span class="mx-r">Real: sin persona</span>${cel(r.tn, true)}${cel(r.fp, false)}
+      <span class="mx-r">Real: con persona</span>${cel(r.fn, false)}${cel(r.tp, true)}</div></div>`;
+  }
+
+  const tile = (valor, texto, clase = "") => `<div class="tile ${clase}"><div class="tile__v">${valor}</div><div class="tile__t">${texto}</div></div>`;
+  const ACENTOS = { "Presentación final": "#1d5c4e", "Introducción": "#1d5c4e", "Hipótesis y resultado": "#1d5c4e", "Dominio y problema": "#1d5c4e", "Arquitectura de la solución": "#2f5da8", "Análisis exploratorio": "#d9822b", "Técnica de minería": "#b0457b", "Conclusión": "#cf432c", "Aplicación funcional": "#18222d", "Equipo y preguntas": "#1d5c4e", "Anexo": "#8a94a0" };
+
+  function graficoMeses() {
+    const meses = R.meses, w = 1040, h = 520, arriba = 92, abajo = 108, alto = h - arriba - abajo;
+    const NOM = { "2026-03": "Mar", "2026-04": "Abr", "2026-05": "May", "2026-06": "Jun", "2026-07": "Jul", "2026-08": "Ago", "2026-09": "Sep", "2026-10": "Oct" };
+    const maximo = Math.max(...meses.map((m) => m.chats)), gw = w / meses.length;
+    let s = `<rect x="0" y="6" width="22" height="22" fill="#8a94a0" rx="3"/><text x="32" y="25" font-size="23" font-weight="600">Sin anuncios</text><rect x="210" y="6" width="22" height="22" fill="#d9822b" rx="3"/><text x="242" y="25" font-size="23" font-weight="600">Con anuncios</text><text x="440" y="25" font-size="22" class="suave">Debajo de cada mes: % de chats con anuncio</text>`;
+    meses.forEach((m, i) => {
+      const cx = i * gw + gw / 2, alt = Math.max(6, (m.chats / maximo) * alto), y = arriba + alto - alt;
+      s += `<rect x="${cx - 44}" y="${y}" width="88" height="${alt}" fill="${m.con_anuncio > 0 ? "#d9822b" : "#8a94a0"}" rx="4"/>`;
+      s += `<text x="${cx}" y="${y - 10}" text-anchor="middle" font-size="30" font-weight="700" class="disp">${num(m.chats)}</text>`;
+      s += `<text x="${cx}" y="${arriba + alto + 36}" text-anchor="middle" font-size="27" font-weight="700">${NOM[m.mes]}</text>`;
+      s += `<text x="${cx}" y="${arriba + alto + 66}" text-anchor="middle" font-size="22" class="suave">${Math.round(m.con_anuncio * 100)} %</text>`;
+    });
+    return svg(w, h, s);
+  }
+
   const SLIDES = [];
   function slide(def) { SLIDES.push(def); }
 
   slide({
-    clase: "portada", tag: "Ciencia de Datos · Trabajo Práctico Obligatorio", quien: null, min: 0.3, titulo: "",
+    clase: "portada", tag: "Presentación final", quien: null, min: 0.3, titulo: "",
     corto: "Portada",
-    notas: ["Saludar y presentar al grupo en diez segundos.", "Abrir con la pregunta, no con la tecnología: el público es la Gerencia Comercial y Técnica.", "Avisar que la presentación es también la aplicación: los modelos corren dentro de esta página."],
+    notas: ["Saludar y presentar al grupo en diez segundos.", "Anunciar el recorrido: primero quién es Hitelac y cuál es el problema, después la respuesta, y luego cómo llegamos a ella.", "Avisar que la presentación es también la aplicación: los modelos corren dentro de esta página."],
     html: () => `
       <h1 class="titulo">¿A qué chat le toca una persona primero?</h1>
-      <p class="sub">Un modelo que ordena los chats de WhatsApp de Hitelac según qué tan probable es que necesiten a una persona.</p>
-      <p class="chico" style="margin-top:26px">UADE · Ciencia de Datos · Docente: Santiago Martín · Defensa: 26 de noviembre de 2026</p>
+      <p class="sub">Prioridad de atención en los chats de WhatsApp de Hitelac</p>
       <div class="equipo-lista">${EQUIPO.map((e, i) => `<div><b data-quien="${i}">${esc(e.nombre)}</b><span>${esc(e.rol)}</span></div>`).join("")}</div>
-      <div class="bandeja"><div class="hoja">
-        <h4>Bandeja ordenada por el modelo</h4>
-        ${EJEMPLOS.map((e) => ({ e, p: probEjemplo(e) })).sort((a, b) => b.p - a.p).map(({ e, p }) => `
-          <div class="fila-chat"><div><div class="quien">${esc(e.nombre.split(",")[0])}</div><div class="detalle">${esc(detalleEjemplo(e))}</div></div>${etqProb(p)}</div>`).join("")}
-        <div class="pie">Cinco chats de ejemplo evaluados en vivo por el bosque. El número es el puntaje de prioridad, de 0 a 100: cuanto más alto, más arriba en la bandeja.</div>
-      </div></div>`,
+      <aside class="cartel">
+        <div class="cartel-k">Trabajo Práctico Obligatorio</div>
+        <div class="cartel-t">Ciencia de Datos</div>
+        <div class="cartel-s">UADE · Docente: Santiago Martín</div>
+        <div class="cartel-f">Defensa<br><b>26 de noviembre de 2026</b></div>
+        <div class="cartel-cinta"></div>
+      </aside>`,
+  });
+
+  slide({
+    tag: "Introducción", quien: 0, min: 0.9, corto: "Quién es Hitelac",
+    titulo: "Hitelac atiende por WhatsApp: primero responde un bot y, a veces, entra una persona",
+    notas: ["Presentar a la empresa en una frase: importa telas e insumos de confección, también vende ambos médicos y chalecos, y va a sumar prendas y calzado.", "Contar el recorrido de un chat: anuncio en Meta, WhatsApp, bot con IA (que no ve fotos ni audios) y, en algunos casos, una persona.", "Cerrar con el problema: el gerente lee todos los chats para decidir cuáles atender primero."],
+    html: () => {
+      const productos = ["Hilos", "Cierres", "Botones", "Broches", "Elásticos", "Cintas", "Etiquetas", "Entretelas", "Telas", "Chalecos", "Ambos médicos"];
+      const pc = R.embudo.con_humano / R.embudo.maduros;
+      return `<div class="muestrario"><span class="muestrario__t">Importa telas e insumos de confección. Pronto suma prendas y calzado.</span>${productos.map((x) => `<span class="muestra">${x}</span>`).join("")}</div>
+      <div class="recorrido" style="margin-top:28px">
+        <div class="estacion" style="min-height:150px"><h4>Anuncio en Meta</h4><p>Se abre WhatsApp con un mensaje precargado.</p></div>
+        <div class="estacion" style="min-height:150px"><h4>Bot con IA</h4><p>Responde con el catálogo. No ve fotos ni audios.</p></div>
+        <div class="estacion clave" style="min-height:150px"><h4>¿Entra una persona?</h4><p>En el ${pct(pc)} de los chats.</p></div>
+        <div class="estacion" style="min-height:150px"><h4>Atención personalizada</h4><p>Un vendedor asesora y acompaña.</p></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1.7fr 1fr;gap:30px;margin-top:30px;align-items:stretch">
+        <div class="banda banda--hilo"><span class="banda__k">El problema</span><span class="banda__t">Hoy el gerente lee todos los chats para decidir cuáles atender primero.</span></div>
+        ${tile(num(R.embudo.maduros), `conversaciones reales analizadas; ${num(R.embudo.con_humano)} terminaron con una persona.`, "tile--chico")}
+      </div>`;
+    },
   });
 
   slide({
     tag: "Hipótesis y resultado", quien: 0, min: 0.9, corto: "La respuesta primero",
     titulo: "Con lo que el bot ya respondió, Hitelac puede saber qué chats van a necesitar a una persona",
-    notas: ["Conclusión primero, como pide la consigna.", "Leer las tres respuestas de la hipótesis: qué, para quién, cómo entrega valor.", "Explicar 'acierto' en términos de negocio: de los chats que el modelo marca primero, cuántos terminan con una persona."],
+    notas: ["Conclusión primero, como pide la consigna.", "Leer los tres números y después las tres frases de abajo: qué resolvemos, para quién y qué cambia.", "Explicar 'acierto' en términos de negocio: el modelo ordena los chats por puntaje; si se atiende el 20 % de arriba, 92 de cada 100 terminan con una persona contra 49 al elegir al azar."],
     html: () => {
-      const t = top20();
-      return `<div class="grid g-2-1 cuerpo" style="gap:80px;margin-top:52px">
-        <div style="display:grid;gap:34px;align-content:start">
-          <div><div class="pregunta">¿Qué proponemos resolver?</div><div class="respuesta">Anticipar, en el momento en que el bot responde, si el chat va a terminar con una persona en las próximas 24 horas.</div></div>
-          <div><div class="pregunta">¿Para quién?</div><div class="respuesta">Para la gerencia comercial y técnica, que hoy lee todos los chats para decidir cuáles atender primero.</div></div>
-          <div><div class="pregunta">¿Cómo entrega valor?</div><div class="respuesta">La supervisión empieza por los chats que más probablemente necesitan a una persona, en vez de hacerse a ojo.</div></div>
+      const t = top20(), azar = Math.round(R.particiones.test.positivos * 100);
+      const mejora = Math.round((Math.round(t.precision * 100) / azar - 1) * 100);
+      const pm = Math.round(t.precision * 100);
+      const barra = (valor, color, rotulo, sub) => `<div style="display:grid;grid-template-columns:330px 1fr;align-items:center;gap:20px;margin:14px 0">
+            <div style="font-size:27px;line-height:1.15"><b>${rotulo}</b><br><span style="font-size:22px;color:var(--tinta-3)">${sub}</span></div>
+            <div style="background:var(--mesa);border-radius:4px;height:64px"><div style="width:${valor}%;height:100%;background:${color};border-radius:4px;display:flex;align-items:center;justify-content:flex-end;padding-right:16px;color:#fff;font:700 40px var(--display);font-variant-numeric:tabular-nums">${valor} de 100</div></div>
+          </div>`;
+      return `<div class="grid" style="grid-template-columns:1fr;gap:28px;margin-top:26px;align-items:stretch">
+          <div class="tile tile--hilo" style="padding:20px 30px 16px">
+            <div style="font-size:27px;color:var(--tinta-2)">De 100 chats, ¿cuántos terminan con una persona?</div>
+            ${barra(pm, "#cf432c", "Con el modelo", "los 20 % de chats con mayor puntaje")}
+            ${barra(azar, "#8a97a3", "Al azar", "20 % de chats elegidos sin criterio")}
+            <div style="display:flex;align-items:baseline;gap:16px;margin-top:8px"><span class="tile__v" style="font-size:84px;color:var(--hilo)">+${mejora} %</span><span style="font-size:27px;color:var(--tinta-2)">de mejora sobre el azar</span></div>
+          </div>
         </div>
-        <div style="display:grid;gap:34px;align-content:start">
-          <div><div class="cifra hilo">${Math.round(t.precision * 100)} de 100</div><div class="leyenda">de los chats que el modelo pone primero (1 de cada 5) terminan con una persona. Al azar serían ${Math.round(R.particiones.test.positivos * 100)}.</div></div>
-          <div><div class="cifra med verde">${Math.round(t.cobertura * 100)} %</div><div class="leyenda">de todos los chats que necesitaron a una persona quedan cubiertos revisando solo ese quinto.</div></div>
+        <div class="trio" style="margin-top:38px">
+          <div><b>Qué resolvemos</b><span>Anticipar si un chat termina con una persona en las próximas 24 horas.</span></div>
+          <div><b>Para quién</b><span>La gerencia comercial y técnica de Hitelac.</span></div>
+          <div><b>Qué cambia</b><span>Se empieza por los chats que más probablemente la necesitan.</span></div>
         </div>
-      </div>
-      <div class="cosido" style="margin-top:30px;padding:20px 34px"><span class="texto suave">Lo probamos con los chats de octubre de 2026, que el modelo no vio al entrenarse ni al ajustarse.</span></div>`;
+        <p class="chico" style="margin-top:24px">Probado con los chats de octubre de 2026, que el modelo no vio al entrenarse ni al ajustarse.</p>`;
     },
   });
 
   slide({
-    tag: "Dominio y problema", quien: 0, min: 0.8, corto: "Cómo viaja un chat",
-    titulo: "Un chat nace en un anuncio y pasa por un bot antes de llegar a una persona",
-    notas: ["Hitelac importa telas e insumos de confección y va a sumar prendas y calzado: el volumen de chats crece.", "El bot responde con la información real de la base de productos, pero no ve fotos ni audios.", "El problema: nadie sabe de antemano cuáles chats van a necesitar a una persona."],
-    html: () => `
-      <div class="recorrido">
-        <div class="estacion"><h4>Anuncio en Meta</h4><p>El cliente toca el anuncio y se abre WhatsApp con un mensaje precargado.</p></div>
-        <div class="estacion"><h4>Bot con IA</h4><p>Responde con el catálogo real de la empresa. No ve fotos ni audios.</p></div>
-        <div class="estacion clave"><h4>¿Interviene una persona?</h4><p>Pasa en ${pct(R.embudo.con_humano / R.embudo.maduros)} de los chats analizados.</p>
-          <div class="partido"><div style="width:${(R.embudo.con_humano / R.embudo.maduros) * 100}%;background:#fff;color:#cf432c">${pct(R.embudo.con_humano / R.embudo.maduros)}</div><div style="flex:1;background:rgba(255,255,255,.3)"></div></div></div>
-        <div class="estacion"><h4>Atención humana</h4><p>Un vendedor responde, manda fotos, precios o descuentos.</p></div>
-      </div>
-      <div class="grid g2" style="margin-top:56px;gap:70px">
-        <div><div class="pregunta">El problema</div><p class="texto" style="margin-top:6px">El gerente entra y tiene que leer todos los chats para saber cuáles priorizar. No hay forma de anticipar qué conversación va a necesitar a una persona.</p></div>
-        <div><div class="pregunta">El caso de estudio</div><p class="texto" style="margin-top:6px">${num(R.embudo.maduros)} conversaciones reales de Hitelac, una importadora de telas e insumos de confección que va a sumar prendas y calzado. ${num(R.embudo.con_humano)} terminaron con una persona.</p></div>
-      </div>`,
-  });
-
-  slide({
-    tag: "Dominio y problema", quien: 0, min: 0.6, corto: "Valor para el negocio",
+    tag: "Dominio y problema", quien: 0, min: 0.5, corto: "Valor para el negocio",
     titulo: "Revisar uno de cada cinco chats, en orden, cubre casi el doble que hacerlo al azar",
-    notas: ["Traducir las métricas a plata y tiempo: menos lectura con el mismo foco.", "Aclarar el límite: el modelo mide dónde hoy interviene el equipo, no si el chat lo necesitaba.", "No prometemos ventas: no hay datos de venta en el caso."],
+    notas: ["Traducir las métricas a plata y tiempo: menos lectura con el mismo foco.", "El límite principal: no hay datos de ventas, así que no sabemos si priorizar un chat termina en una venta. Lo que medimos es dónde interviene hoy el equipo.", "No prometemos ventas: no hay datos de venta en el caso."],
     html: () => {
-      const t = top20();
-      const azar = R.particiones.test.positivos;
-      const barra = (etq, v, color) => `<div style="margin:8px 0"><div class="chico" style="margin-bottom:2px;font-size:22px">${etq}</div><div style="display:flex;align-items:center;gap:16px"><div style="height:34px;width:${v * 560}px;background:${color};border-radius:3px"></div><div class="disp" style="font-size:36px;font-family:var(--display);font-variation-settings:'wdth' 82,'wght' 700">${pct(v)}</div></div></div>`;
-      return `<div class="grid g2 cuerpo" style="gap:70px;margin-top:28px">
-        <div class="hoja" style="padding:26px 34px"><div class="pregunta">Si el gerente revisa el 20 % de los chats…</div>
-          <div style="margin-top:8px;font-size:27px" class="fuerte">Al azar</div>
-          ${barra("terminan con una persona", azar, "#8a94a0")}${barra("de los chats con persona que se alcanzan", 0.2, "#8a94a0")}
-          <div style="margin-top:14px;font-size:27px" class="fuerte">Empezando por los que marca el modelo</div>
-          ${barra("terminan con una persona", t.precision, "#2f5da8")}${barra("de los chats con persona que se alcanzan", t.cobertura, "#1d5c4e")}
+      const t = top20(), azar = R.particiones.test.positivos;
+      const mb = R.metricas[GRUPO].bosque;
+      const conPersona = mb.tp + mb.fn, total = R.particiones.test.episodios;
+      const vistosAzar = Math.round(t.chats_revisados * azar), vistosModelo = Math.round(t.chats_revisados * t.precision);
+      const n = (v) => `<span class="cmp-n__v">${Math.round(v * 100)}</span><span class="cmp-n__u"> de 100</span>`;
+      return `<div class="grid" style="gap:56px;margin-top:26px;grid-template-columns:1.3fr .7fr;align-items:start">
+        <div class="hoja" style="padding:24px 30px"><div class="pregunta">Si el gerente revisa solo el 20 % de los chats (${num(t.chats_revisados)} de ${num(total)})…</div>
+          <div style="font-size:26px;color:var(--tinta-2);margin:6px 0 4px">…¿cuántos de los ${num(conPersona)} chats que terminan con una persona llega a ver?</div>
+          ${[["Al azar", vistosAzar, "#8a97a3"], ["Con el modelo", vistosModelo, "#1d5c4e"]].map(([r, v, c]) => `<div style="margin:16px 0 0"><div style="font-size:26px;font-weight:700;margin-bottom:4px">${r}</div>
+            <div style="background:var(--mesa);border-radius:4px;height:76px;position:relative"><div style="width:${(v / conPersona * 100).toFixed(1)}%;height:100%;background:${c};border-radius:4px;display:flex;align-items:center;padding-left:16px;color:#fff;white-space:nowrap;overflow:hidden"><b style="font:700 34px/1 var(--display);font-variant-numeric:tabular-nums">${num(v)}</b><span style="font-size:22px;margin-left:8px">chats</span></div><span style="position:absolute;right:18px;top:0;height:100%;display:flex;align-items:center;font:700 38px var(--display);color:var(--tinta-2)">${Math.round(v / conPersona * 100)} %</span></div></div>`).join("")}
+          <div style="display:flex;align-items:baseline;gap:16px;margin-top:20px"><span class="tile__v" style="font-size:72px;color:var(--verde)">+${Math.round((vistosModelo / vistosAzar - 1) * 100)} %</span><span style="font-size:26px;color:var(--tinta-2)">más chats con persona vistos que al azar</span></div>
         </div>
-        <div style="display:grid;gap:28px;align-content:center">
-          <div><div class="pregunta">Qué cambia</div><p class="texto" style="margin-top:6px">La supervisión deja de ser leer todo: se empieza por los chats con más probabilidad de intervención humana.</p></div>
-          <div><div class="pregunta">Qué no cambia</div><p class="texto" style="margin-top:6px">El criterio del gerente. El puntaje es una prioridad sugerida y se puede explicar.</p></div>
-          <div><span class="sello hilo">Límite</span><p class="texto suave" style="margin-top:8px">Medimos dónde interviene hoy el equipo. No prueba que el chat lo necesitara ni que termine en una venta.</p></div>
+        <div style="display:grid;gap:18px;align-content:start">
+          <div class="nota nota--verde"><b>Qué cambia</b><span>La supervisión empieza por los chats con más probabilidad de persona, en vez de leer todo.</span></div>
+          <div class="nota nota--azul"><b>Qué no cambia</b><span>El criterio del gerente: el puntaje es una prioridad sugerida.</span></div>
+          <div class="nota nota--hilo nota--fuerte"><b>Límite</b><span>No hay datos de ventas: no sabemos si un chat priorizado termina en una venta.</span></div>
         </div>
       </div>`;
     },
   });
 
   slide({
-    tag: "Arquitectura de la solución", quien: 1, min: 0.9, corto: "Arquitectura",
-    titulo: "Todo el recorrido de los datos, de la fuente al puntaje, funciona sin internet",
-    notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación.", "Remarcar la regla clave: las variables usan solo lo que existe cuando el bot responde.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
+    tag: "Arquitectura de la solución", quien: 1, min: 0.8, corto: "Arquitectura",
+    titulo: "El recorrido de los datos: de los chats de WhatsApp al puntaje de prioridad",
+    notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación. Aclarar que las cuatro primeras son la preparación de los datos, hecha antes del modelado: la exportación de los chats se hizo una vez desde el sistema de la empresa (corte del 1/11) y el grupo trabaja con esa copia. Lo que corre sin internet es el modelado y la aplicación (el simulador y los tableros), que no están conectados al sistema de chats de Hitelac.", "Remarcar la regla clave: las variables usan solo lo que existe cuando el bot responde.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
     html: () => `
+      <div class="fases"><span class="fase fase--previa">Preparación de los datos, hecha antes del modelado</span><span class="fase fase--modelo">Modelado y aplicación: corren sin internet</span></div>
       <div class="recorrido seis">
-        <div class="estacion"><h4>Fuente privada</h4><p>Exportación de los chats de WhatsApp y del bot.</p></div>
-        <div class="estacion"><h4>Limpieza</h4><p>Saca pruebas, contactos internos y menús del bot. Seudonimiza con clave.</p></div>
-        <div class="estacion"><h4>Data Mart</h4><p>Base SQLite con mensajes, sesiones, episodios y resultados.</p></div>
+        <div class="estacion"><h4>Fuente privada</h4><p>Chats de WhatsApp y del bot, exportados de la empresa.</p></div>
+        <div class="estacion"><h4>Limpieza</h4><p>Sin pruebas, contactos internos ni menús del bot. Seudonimizado.</p></div>
+        <div class="estacion"><h4>Data Mart</h4><p>Base SQLite con mensajes, sesiones y episodios.</p></div>
         <div class="estacion"><h4>Variables</h4><p>56 señales al momento en que responde el bot. Nada del futuro.</p></div>
         <div class="estacion"><h4>Modelos</h4><p>Dummy, árbol, bosque y MLP, con el mismo corte temporal.</p></div>
-        <div class="estacion clave"><h4>Aplicación</h4><p>Puntaje de prioridad y tableros. Se abre sin conexión.</p></div>
+        <div class="estacion clave"><h4>Aplicación</h4><p>Simulador y tableros de BI. Sin vínculo con el sistema de Hitelac.</p></div>
       </div>
-      <div class="grid g2" style="margin-top:50px;gap:56px">
-        <div class="cosido"><div class="pregunta">Business intelligence</div><p class="texto" style="margin-top:6px">Nueve consultas SQL y dos tableros: demanda y respuesta, seguimiento y calidad.</p></div>
-        <div class="cosido"><div class="pregunta">Integridad</div><p class="texto" style="margin-top:6px">Hashes verificados, corte temporal con purga de ${num(R.particiones.purgado.episodios)} episodios y revisión de que ninguna variable use datos posteriores.</p></div>
+      <div class="grid" style="grid-template-columns:1.5fr 1fr;gap:30px;margin-top:26px;align-items:stretch">
+        <div class="cosido"><div class="pregunta">Un chat convertido en números (ejemplo, no es un chat real)</div>
+          <div style="display:grid;grid-template-columns:1fr auto 1.05fr;gap:8px 16px;align-items:center;margin-top:10px;font-size:24px">
+            <span class="suave">Cliente: «busco elástico…»</span><span>→</span><b>requested_elasticos = 1</b>
+            <span class="suave">Bot: ofrece elástico</span><span>→</span><b>offered_elasticos = 1</b>
+            <span class="suave">Lo pedido coincide con lo ofrecido</span><span>→</span><b>matched_elasticos = 1</b>
+          </div></div>
+        ${tile("9", "consultas SQL y 2 tableros de BI para entender qué pasó.", "tile--azul tile--chico")}
       </div>`,
   });
 
   slide({
-    tag: "Arquitectura de la solución", quien: 1, min: 0.7, corto: "Los datos",
+    tag: "Arquitectura de la solución", quien: 1, min: 0.5, corto: "Los datos",
     titulo: "Partimos de 47 mil mensajes y llegamos a 3.981 conversaciones con resultado conocido",
-    notas: ["Un episodio es una conversación en el momento en que el bot da su primera respuesta comercial.", "Maduro significa que ya pasaron las 24 horas y sabemos si respondió una persona.", "Decir qué falta: ventas, el texto de los mensajes en la copia compartida y quién respondió cada chat."],
+    notas: ["Mensajes y conversaciones son unidades distintas: de la exportación salen 35 mil mensajes elegibles, que se agrupan en 4.570 sesiones de consulta.", "Un episodio es una conversación en el momento en que el bot da su primera respuesta comercial. Maduro significa que ya pasaron las 24 horas y sabemos si respondió una persona.", "Decir qué falta: ventas, el texto de los mensajes en la copia compartida y quién respondió cada chat."],
     html: () => {
       const e = R.embudo;
-      const paso = (v, t, ultimo) => `<div style="flex:1;position:relative"><div class="cifra med" style="font-size:80px">${num(v)}</div><div class="chico" style="margin-top:6px;min-height:60px">${t}</div></div>`;
-      return `<div class="cuerpo" style="display:flex;gap:30px;align-items:flex-start">
-          ${paso(e.mensajes_fuente, "mensajes en la exportación")}${paso(e.mensajes, "mensajes elegibles")}${paso(e.sesiones, "sesiones de consulta")}${paso(e.episodios, "episodios con respuesta del bot")}${paso(e.maduros, "episodios con las 24 h cumplidas")}
-        </div>
-        <div style="margin-top:20px"><div class="partido" style="height:56px;font-size:28px"><div style="width:${(e.con_humano / e.maduros) * 100}%;background:#cf432c">${num(e.con_humano)} con una persona</div><div style="flex:1;background:#1d5c4e">${num(e.sin_humano)} lo resolvió el bot</div></div></div>
-        <div class="grid g2" style="margin-top:46px;gap:70px">
-          <div><div class="pregunta">Qué hay</div><ul class="puntos chico" style="margin-top:10px"><li>${num(e.contactos)} contactos, seudonimizados.</li><li>Pedido del cliente y oferta del bot, por familia de producto.</li><li>Hora, día y ritmo de la conversación.</li></ul></div>
-          <div><div class="pregunta">Qué falta</div><ul class="puntos hilo chico" style="margin-top:10px"><li>Ventas: no sabemos si el chat terminó en compra.</li><li>Quién respondió cada chat, para medir seniority.</li><li>El texto de los mensajes en la copia compartida.</li></ul></div>
-        </div>`;
+      const fila = (v, texto, pctv, color) => `<div style="background:var(--mesa);border-radius:4px;height:66px;margin:12px 0"><div style="width:${Math.max(pctv, 0)}%;height:100%;background:${color};border-radius:4px;display:flex;align-items:center;gap:16px;padding-left:18px;color:#fff;white-space:nowrap;overflow:hidden"><b style="font:700 38px var(--display);font-variant-numeric:tabular-nums">${num(v)}</b><span style="font-size:24px">${texto}</span></div></div>`;
+      return `<div class="grid" style="grid-template-columns:1fr 1fr;gap:48px;margin-top:20px">
+        <div><div class="pregunta">Mensajes</div>
+          ${fila(e.mensajes_fuente, "en la exportación", 100, "#8a94a0")}
+          ${fila(e.mensajes, "elegibles tras la limpieza", (e.mensajes / e.mensajes_fuente) * 100, "#2f5da8")}</div>
+        <div><div class="pregunta">Conversaciones</div>
+          ${fila(e.sesiones, "sesiones de consulta", 100, "#8a94a0")}
+          ${fila(e.episodios, "episodios con respuesta del bot", (e.episodios / e.sesiones) * 100, "#2f5da8")}
+          ${fila(e.maduros, "con las 24 horas cumplidas", (e.maduros / e.sesiones) * 100, "#1d5c4e")}</div>
+      </div>
+      <div class="partido" style="height:60px;font-size:28px;margin-top:22px"><div style="width:${(e.con_humano / e.maduros) * 100}%;background:#cf432c">${num(e.con_humano)} terminaron con una persona</div><div style="flex:1;background:#1d5c4e">${num(e.sin_humano)} los resolvió el bot</div></div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:48px;margin-top:26px">
+        <div><div class="pregunta">Qué hay</div><div class="fichas"><span class="ficha">${num(e.contactos)} contactos seudonimizados</span><span class="ficha">Producto pedido y ofrecido</span><span class="ficha">Hora, día y ritmo del chat</span></div></div>
+        <div><div class="pregunta" style="color:#cf432c">Qué falta</div><div class="fichas"><span class="ficha ficha--falta">Ventas</span><span class="ficha ficha--falta">Quién respondió cada chat</span><span class="ficha ficha--falta">El texto de los mensajes</span></div></div>
+      </div>`;
     },
   });
 
   slide({
-    tag: "Análisis exploratorio", quien: 2, min: 0.8, corto: "Qué pide el cliente", chico: true,
+    tag: "Análisis exploratorio", quien: 2, min: 0.7, corto: "Qué pide el cliente", chico: true,
     titulo: "Según qué producto pide el cliente, la intervención humana va del 14 % al 99 %",
-    notas: ["Este es el hallazgo comercial más fuerte: el producto pedido marca el destino del chat.", "Broches son la mayoría de los pedidos y casi siempre los resuelve el bot; chalecos y la familia 'ambos' casi siempre pasan a una persona.", "Las filas con asterisco tienen pocos chats: no sacar conclusiones de ellas."],
-    html: () => `<div class="grid g-2-1 cuerpo" style="gap:60px;align-items:start">
-        <div>${graficoFamilias()}<div class="chico" style="margin-top:6px">Porcentaje de chats que terminaron con una persona, según la familia que pidió el cliente. * Menos de 30 chats.</div></div>
-        <div style="display:grid;gap:26px;align-content:start;padding-top:20px">
-          <div><div class="cifra med verde">14 %</div><div class="leyenda">de los chats que piden broches (1.217) los resuelve el bot casi solo.</div></div>
-          <div><div class="cifra med hilo">94 – 99 %</div><div class="leyenda">de los que piden "ambos" o chalecos terminan con una persona.</div></div>
-          <p class="texto suave">Puede haber reglas de derivación por producto. Lo vamos a confirmar con la empresa.</p>
+    notas: ["Este es el hallazgo comercial más fuerte: el producto pedido marca el destino del chat.", "Broches son la mayoría de los pedidos y casi siempre los resuelve el bot; ambos médicos y chalecos son los productos que la empresa impulsa con anuncios y atiende con personas.", "Las filas con asterisco tienen pocos chats: no sacar conclusiones de ellas."],
+    html: () => `<div class="grid" style="grid-template-columns:1.55fr .75fr;gap:46px;align-items:start;margin-top:12px">
+        <div><div class="pregunta" style="margin-bottom:2px">De los chats que piden cada familia, ¿cuántos terminan con una persona?</div>${graficoFamilias()}</div>
+        <div style="display:grid;gap:20px;padding-top:30px">
+          ${tile("14 %", "de los chats que piden broches (1.217): el bot los resuelve casi solo.", "tile--verde tile--chico")}
+          ${tile("94–99 %", "de los que piden ambos médicos o chalecos terminan con una persona.", "tile--hilo tile--chico")}
+          <div class="nota nota--azul"><b>Es una política</b><span>Hitelac impulsa esos productos con anuncios y los atiende con personas.</span></div>
         </div></div>`,
   });
 
   slide({
-    tag: "Análisis exploratorio", quien: 2, min: 0.7, corto: "Los anuncios y los meses", chico: true,
+    tag: "Análisis exploratorio", quien: 2, min: 0.6, corto: "Los anuncios y los meses", chico: true,
     titulo: "Desde julio hay anuncios: el volumen se multiplicó por veinte y cambió qué se consulta",
     notas: ["Hasta junio no hay ni un chat de anuncio: unos 50 por mes, casi todos terminan con una persona.", "Desde julio aparecen los anuncios y en agosto el volumen se dispara. Casi todo el entrenamiento es de agosto.", "Dentro de agosto a octubre cambia qué producto se promociona (ambos médicos contra broches) y con eso cambia la proporción de chats con una persona.", "Consecuencia: hay que reentrenar cuando cambian las campañas."],
     html: () => {
-      const MES = { "2026-03": "Marzo", "2026-04": "Abril", "2026-05": "Mayo", "2026-06": "Junio", "2026-07": "Julio", "2026-08": "Agosto", "2026-09": "Septiembre", "2026-10": "Octubre" };
-      const filas = R.meses.map((r) => `<tr${r.mes === "2026-08" ? ' class="mejor"' : ""}><td>${MES[r.mes]}</td><td>${num(r.chats)}</td><td>${pct(r.con_anuncio)}</td><td>${pct(r.con_humano)}</td><td>${pct(r.pide_ambos)}</td><td>${pct(r.pide_broches)}</td></tr>`).join("");
       const c = Object.fromEntries(R.composicion.map((x) => [x.mes, x]));
       const train = R.composicion.reduce((a, x) => a + x.train, 0);
-      return `<div class="grid cuerpo" style="grid-template-columns:1.2fr .8fr;gap:52px;align-items:start;margin-top:22px">
-        <div><table class="tabla" style="font-size:24px"><thead><tr><th>2026</th><th>Chats</th><th>Con anuncio</th><th>Con humano</th><th>Piden ambos</th><th>Piden broches</th></tr></thead><tbody>${filas}</tbody></table>
-          <div class="chico" style="margin-top:10px">Mes en que el bot respondió. "Con anuncio" incluye los anuncios inferidos por la regla de texto.</div></div>
-        <div class="hoja" style="padding:26px 32px"><ul class="puntos chico">
-          <li>Hasta junio no hay anuncios: unos 50 chats por mes, casi todos con una persona.</li>
-          <li>Desde julio aparecen, y en agosto llegan a ${num(R.meses.find((r) => r.mes === "2026-08").chats)} chats.</li>
-          <li>El entrenamiento es casi todo agosto: ${num(c["2026-08"].train)} de ${num(train)} chats.</li>
-          <li>De agosto a octubre cambia qué se promociona: ambos pasa de 32 a 43 y a 35 %, y con eso la proporción con una persona (51, 60 y 49 %).</li>
-          <li>Hay que reentrenar cuando cambian las campañas.</li></ul></div>
+      const por = Object.fromEntries(R.meses.map((m) => [m.mes, m.chats]));
+      return `<div class="grid" style="grid-template-columns:1.6fr .8fr;gap:46px;align-items:start;margin-top:14px">
+        <div><div class="pregunta" style="margin-bottom:2px">Chats por mes</div>${graficoMeses()}</div>
+        <div style="display:grid;gap:22px;padding-top:26px">
+          ${tile("×" + Math.round(por["2026-08"] / por["2026-06"]), `de junio a agosto: de ${num(por["2026-06"])} a ${num(por["2026-08"])} chats.`, "tile--naranja")}
+          ${tile(`${num(c["2026-08"].train)}<small>de ${num(train)}</small>`, "chats de entrenamiento son de agosto.", "tile--chico tile--naranja")}
+          <div class="nota nota--hilo"><b>Hay que reentrenar</b><span>cuando cambian las campañas.</span></div>
+        </div>
       </div>`;
     },
-  });
-
-  slide({
-    tag: "Análisis exploratorio", quien: 2, min: 1.0, corto: "El atajo", chico: true,
-    titulo: "Lo que más nos llamó la atención: un atajo que decidimos no usar",
-    notas: ["El largo del primer mensaje del cliente predecía muy bien, pero se concentra en pocos valores exactos.", "Eso es la firma del mensaje precargado del anuncio. Cambia con cualquier retoque, hasta un signo de exclamación, y el modelo se rompería.", "Lo sacamos y medimos qué queda: las variables operativas solas quedan al nivel del azar; las comerciales sostienen todo."],
-    html: () => `<div class="grid g2 cuerpo" style="gap:64px;align-items:start">
-        <div>${graficoLargo()}<p class="chico" style="margin-top:12px">Los tres largos más frecuentes del primer mensaje del cliente. Cada valor es casi seguro un mensaje precargado distinto.</p></div>
-        <div style="display:grid;gap:24px;align-content:start">
-          <div class="hoja"><div class="pregunta">Por qué no lo usamos</div><p class="texto" style="margin-top:8px">El anuncio se satura, se cambia el texto y el valor cambia. Un modelo que depende de eso se rompe sin avisar.</p></div>
-          <div class="hoja"><div class="pregunta">Qué pasa sin ese dato</div>
-            <div style="display:flex;gap:40px;margin-top:12px;align-items:flex-end">
-              <div><div class="cifra med">${dec(ap("operativas", "bosque"))}</div><div class="chico">con el largo de texto</div></div>
-              <div><div class="cifra med hilo">${dec(ap("operativas_sin_largo", "bosque"))}</div><div class="chico">sin el largo (azar: ${dec(R.metricas.operativas.dummy.ap)})</div></div>
-            </div>
-            <p class="chico" style="margin-top:10px">Calidad del ranking con solo variables operativas (bosque).</p></div>
-        </div></div>`,
   });
 
   slide({
     tag: "Técnica de minería", quien: 3, min: 1.0, corto: "Cuatro modelos", chico: true,
     titulo: "Cuatro modelos, un mismo corte temporal y una sola vara para compararlos",
-    notas: ["Los cuatro son supervisados: aprenden de chats que ya tienen la respuesta conocida.", "El corte es por fecha, sin mezclar: entrenamos con lo anterior a septiembre, ajustamos en septiembre y probamos en octubre.", "La métrica principal es Average Precision: qué tan arriba pone los chats que sí terminan con una persona."],
-    html: () => `<div class="grid g-2-1 cuerpo" style="gap:56px;align-items:start;grid-template-columns:1.15fr .85fr">
-        <div class="tarjetas" style="grid-template-columns:1fr 1fr;gap:20px">
-          ${[
-            ["dummy", "Dummy", "Siempre responde la proporción que vio al entrenar. Es el piso: cualquier modelo real tiene que superarlo."],
-            ["arbol", "Árbol de decisión", "Una cadena de preguntas de sí o no, como \"¿pidió chalecos?\". Se puede leer y explicar."],
-            ["bosque", "Bosque aleatorio", "Trescientos árboles que votan. Suele ser más estable, pero ya no se puede leer."],
-            ["mlp", "Red neuronal (MLP)", "Capas de neuronas que combinan las variables. Es la más difícil de explicar."],
-          ].map(([id, n, t]) => `<div class="modelo ${id}" style="padding:22px 26px"><div class="nombre" style="font-size:34px">${n}</div><p style="font-size:26px;line-height:1.32;margin-top:8px;color:#46535f">${t}</p></div>`).join("")}
-        </div>
-        <div class="cosido"><div class="pregunta">Cómo los comparamos</div>
-          <ul class="puntos chico" style="margin-top:12px">
-            <li><b>Entrenan</b> con chats anteriores a septiembre (${num(R.particiones.train.episodios)}).</li>
-            <li><b>Se ajustan</b> con septiembre (${num(R.particiones.validation.episodios)}).</li>
-            <li><b>Se prueban</b> en octubre (${num(R.particiones.test.episodios)}), sin tocarlos antes.</li>
-            <li>${num(R.particiones.purgado.episodios)} chats cuyo resultado cruza una fecha de corte se descartan.</li>
-            <li>Misma semilla, mismas variables y mismos chats para los cuatro.</li>
-          </ul></div></div>`,
-  });
-
-  slide({
-    tag: "Técnica de minería", quien: 3, min: 1.2, corto: "Resultados y elección", chico: true,
-    titulo: "Los tres rinden parecido; el bosque puntúa mejor y el árbol explica por qué",
-    notas: ["Mirar el último grupo de barras: 56 variables sin el largo de texto. Árbol 0,88, bosque 0,88, MLP 0,85: en ranking, parecidos.", "Elegimos el bosque para puntuar porque es mejor en F1, en calibración y en la finura del puntaje: el árbol da solo unos 30 valores distintos y un quinto de los chats empata, algo que no sirve para ordenar una cola.", "El árbol queda al lado para explicar: son 39 reglas de producto que la gerencia puede discutir. Es una aproximación, no es el bosque mismo.", "Combinar modelos y justificar qué aporta cada uno es parte de lo que pide la consigna."],
+    notas: ["Los cuatro son supervisados: aprenden de chats que ya tienen la respuesta conocida.", "El corte es por fecha, sin mezclar: entrenamos con lo anterior a septiembre, ajustamos en septiembre y probamos en octubre.", "La métrica principal es Average Precision: qué tan arriba pone los chats que sí terminan con una persona.", "Mismos chats, mismas variables y misma semilla para los cuatro. La purga descarta chats cuyo resultado cruza una fecha de corte (139 en total)."],
     html: () => {
-      const c = DATOS.complejidad;
-      const d = R.diferencias.find((x) => x.grupo === GRUPO && x.a === "bosque" && x.b === "arbol");
-      const g = DATOS.modelos.granularidad;
-      const mb = R.metricas[GRUPO].bosque, ma = R.metricas[GRUPO].arbol;
-      return `<div class="grid cuerpo" style="grid-template-columns:1.05fr .95fr;gap:50px;align-items:start;margin-top:26px">
-        <div>${graficoAblacion()}<div class="chico">Calidad del ranking (Average Precision) en octubre. Más alto es mejor.</div><p class="texto" style="margin-top:18px;font-size:27px">Con solo variables operativas y sin el largo de texto, ningún modelo supera al azar. Todo el valor está en qué pide el cliente y qué le ofrece el bot.</p></div>
-        <div style="display:grid;gap:22px;align-content:start">
-          <div class="hoja"><div class="pregunta">Bosque para puntuar, árbol para explicar</div>
-            <ul class="puntos chico" style="margin-top:12px">
-              <li>En ranking son parecidos: bosque ${dec(ap(GRUPO, "bosque"), 3)}, árbol ${dec(ap(GRUPO, "arbol"), 3)}, MLP ${dec(ap(GRUPO, "mlp"), 3)} (bosque menos árbol: ${d.diferencia >= 0 ? "+" : ""}${dec(d.diferencia, 3)}, intervalo ${dec(d.ic95_bajo, 3)} a ${dec(d.ic95_alto, 3)}).</li>
-              <li>El bosque gana en F1 (${dec(mb.f1, 2)} contra ${dec(ma.f1, 2)}), en ROC-AUC y en calibración (Brier ${dec(mb.brier, 3)} contra ${dec(ma.brier, 3)}).</li>
-              <li>Ordena más fino: el árbol da ${g.arbol.distintos} puntajes distintos y el ${pct(g.arbol.mayor_empate)} de los chats empata en el mismo; el bosque da ${num(g.bosque.distintos)}.</li>
-              <li>El árbol (${c.arbol.hojas} hojas) explica qué señales de producto pesan. Es una aproximación, no es el bosque.</li>
-            </ul></div>
-        </div></div>`;
+      const ico = {
+        dummy: `<svg viewBox="0 0 120 64" width="120" height="64"><line x1="8" y1="32" x2="112" y2="32" stroke="#8a94a0" stroke-width="6" stroke-linecap="round"/><circle cx="60" cy="32" r="9" fill="#8a94a0"/></svg>`,
+        arbol: `<svg viewBox="0 0 120 64" width="120" height="64"><g stroke="#2f5da8" stroke-width="4" fill="none" stroke-linecap="round"><path d="M60 10 L28 34 M60 10 L92 34 M28 34 L12 56 M28 34 L44 56 M92 34 L76 56 M92 34 L108 56"/></g><g fill="#2f5da8"><circle cx="60" cy="10" r="8"/><circle cx="28" cy="34" r="7"/><circle cx="92" cy="34" r="7"/></g><g fill="#1d5c4e"><circle cx="12" cy="56" r="5"/><circle cx="44" cy="56" r="5"/></g><g fill="#cf432c"><circle cx="76" cy="56" r="5"/><circle cx="108" cy="56" r="5"/></g></svg>`,
+        bosque: `<svg viewBox="0 0 120 64" width="120" height="64"><g fill="#b0457b"><path d="M20 10 L36 44 L4 44Z"/><path d="M60 4 L80 50 L40 50Z" opacity=".85"/><path d="M100 12 L116 46 L84 46Z"/></g><g stroke="#6b3a52" stroke-width="5" stroke-linecap="round"><path d="M20 44 V58 M60 50 V62 M100 46 V58"/></g></svg>`,
+        mlp: `<svg viewBox="0 0 120 64" width="120" height="64"><g stroke="#d9822b" stroke-width="2" opacity=".6"><path d="M16 14 L60 10 M16 14 L60 32 M16 14 L60 54 M16 32 L60 10 M16 32 L60 32 M16 32 L60 54 M16 50 L60 10 M16 50 L60 32 M16 50 L60 54 M60 10 L104 22 M60 32 L104 22 M60 54 L104 22 M60 10 L104 42 M60 32 L104 42 M60 54 L104 42"/></g><g fill="#d9822b"><circle cx="16" cy="14" r="6"/><circle cx="16" cy="32" r="6"/><circle cx="16" cy="50" r="6"/><circle cx="60" cy="10" r="6"/><circle cx="60" cy="32" r="6"/><circle cx="60" cy="54" r="6"/><circle cx="104" cy="22" r="6"/><circle cx="104" cy="42" r="6"/></g></svg>`,
+      };
+      const modelos = [
+        ["dummy", "Dummy", "Siempre responde la proporción que vio. Es el piso de comparación.", "Es el piso", "#8a94a0"],
+        ["arbol", "Árbol de decisión", "Cadena de preguntas de sí o no, como «¿pidió chalecos?».", "Se puede leer", "#1d5c4e"],
+        ["bosque", "Bosque aleatorio", "Trescientos árboles que votan. Más estable que uno solo.", "No se puede leer", "#cf432c"],
+        ["mlp", "Red neuronal (MLP)", "Capas de neuronas que combinan las variables.", "No se puede leer", "#cf432c"],
+      ];
+      return `<div class="grid" style="grid-template-columns:repeat(4,1fr);gap:30px;margin-top:40px;align-items:stretch">
+          ${modelos.map(([id, n, t, lee, col]) => `<div class="modelo ${id}" style="padding:22px 24px 24px"><div style="height:64px;display:flex;align-items:center">${ico[id]}</div><div class="nombre" style="font-size:32px;margin-top:16px">${n}</div><p style="font-size:24px;line-height:1.3;margin-top:10px;margin-bottom:18px;color:#46535f;min-height:96px">${t}</p><span class="ficha" style="background:${col === "#cf432c" ? "var(--hilo-claro)" : col === "#1d5c4e" ? "var(--verde-claro)" : "#e1e5e8"};color:${col === "#cf432c" ? "#9a2f1e" : col === "#1d5c4e" ? "var(--verde)" : "var(--tinta-2)"};font-size:21px">${lee}</span></div>`).join("")}
+        </div>
+        <div class="hoja" style="margin-top:44px;padding:20px 30px 14px"><div class="pregunta">Los cuatro usan el mismo reparto de chats por fecha</div>${lineaDeTiempo()}</div>`;
     },
   });
 
   slide({
-    tag: "Conclusión", quien: 4, min: 0.9, corto: "El ranking funciona", chico: true,
-    titulo: "El ranking funciona: los chats con puntaje alto son los que más atención reciben",
-    notas: ["Izquierda: si el gerente revisa el 10, 20, 30 o 50 % de arriba, cuántos acierta y cuánto cubre. La línea punteada es el azar.", "Derecha: partimos los chats de octubre en cinco tramos por puntaje. El primero termina con una persona 9 de cada 10 veces; el último, casi nunca.", "Es el mismo orden en mensajes humanos y en fotos o documentos enviados por una persona."],
-    html: () => `<div class="grid g2 cuerpo" style="gap:50px;margin-top:20px">
-        <div><div class="pregunta" style="margin-bottom:6px">Qué pasa si se revisa solo la parte de arriba</div>${graficoTopK()}<div class="chico">Línea punteada: lo que daría el azar.</div></div>
-        <div><div class="pregunta" style="margin-bottom:6px">Chats de octubre, partidos en cinco tramos por puntaje</div>${graficoTramos()}<div class="chico">Correlación entre puntaje y mensajes humanos: ${dec(R.tramos[GRUPO + "/bosque"].spearman, 2)} (Spearman).</div></div>
-      </div>`,
+    tag: "Técnica de minería", quien: 3, min: 0.6, corto: "Qué variables usa cada grupo", chico: true,
+    titulo: "Qué variables usa cada grupo, y qué pasa cuando sacamos el atajo",
+    notas: ["Primero los tres tipos de variables: operativas (cómo fluye el chat), comerciales (qué pidió el cliente y qué ofreció el bot) y largo de texto.", "El protocolo del grupo fija 58 variables: las tres juntas. Sin las dos de largo de texto quedan 56.", "Leer el gráfico de izquierda a derecha: con el largo del mensaje, las operativas parecen rendir bien; sin él, quedan al nivel del azar; las comerciales sostienen todo.", "El largo de texto delata qué anuncio usó el cliente y se rompe si cambian el texto del anuncio: por eso lo sacamos."],
+    html: () => {
+      const tipo = (color, titulo, detalle, cant) => `<div style="display:grid;grid-template-columns:116px 1fr;background:var(--papel);border-radius:6px 6px 6px 20px;overflow:hidden;box-shadow:0 1px 0 rgba(24,34,45,.12)"><div style="background:${color};color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0"><span style="font:700 60px/1 var(--display);font-variant-numeric:tabular-nums">${cant}</span><span style="font-size:19px;font-weight:600;opacity:.9">variables</span></div><div style="padding:16px 22px 18px"><div style="font:650 32px/1.05 var(--display);color:#18222d">${titulo}</div><div style="font-size:23px;line-height:1.3;margin-top:6px;color:#46535f">${detalle}</div></div></div>`;
+      return `<div class="grid cuerpo" style="grid-template-columns:.8fr 1.2fr;gap:48px;align-items:start;margin-top:22px">
+        <div style="display:grid;gap:18px">
+          ${tipo("#8a94a0", "Operativas", "Cómo fluye el chat: hora, día, cantidad de mensajes y demora del bot.", 9)}
+          ${tipo("#1d5c4e", "Comerciales", "Qué pidió el cliente y qué le ofreció el bot, producto por producto.", 47)}
+          ${tipo("#cf432c", "Largo de texto", "Cuántos caracteres tiene el mensaje. Delata qué anuncio usó el cliente: lo sacamos.", 2)}
+          <div class="nota nota--azul"><span><b style="display:inline;font-size:26px">9 + 47 + 2 = 58</b> variables del protocolo. Sin el largo de texto: <b style="display:inline;font-size:26px">56</b>.</span></div>
+        </div>
+        <div class="hoja" style="padding:18px 26px 8px"><div class="pregunta" style="margin-bottom:2px">Calidad del ranking en octubre (más alto es mejor)</div>${graficoAblacion()}</div>
+      </div>`;
+    },
   });
 
   slide({
-    tag: "Conclusión", quien: 4, min: 0.9, corto: "Más allá de los productos impulsados", chico: true,
+    tag: "Técnica de minería", quien: 3, min: 0.8, corto: "Resultados y elección", chico: true,
+    titulo: "Los tres rinden parecido; el bosque puntúa mejor y el árbol explica por qué",
+    notas: ["Mirar las barras: con las 56 variables, árbol 0,88, bosque 0,88 y MLP 0,85. En ranking son parecidos y las líneas finas muestran el margen de error.", "Elegimos el bosque para puntuar: ordena más fino (el árbol da solo unos 30 valores distintos y un quinto de los chats empata), calibra mejor y tiene mejor F1 que el árbol (el MLP también calibra bien: no se descartó por rendir peor, sino porque no hay diferencia clara y no se puede explicar).", "El árbol queda al lado para explicar: son 39 reglas de producto que la gerencia puede discutir. Es una aproximación, no es el bosque mismo.", "Por qué no el MLP: empata en ranking (la diferencia con el bosque está dentro del margen de error) y hasta calibra y puntúa F1 algo mejor; no se descartó por rendir peor sino porque no se puede explicar. Por qué el árbol y no el bosque para explicar: el árbol se puede leer regla por regla. Combinar modelos y justificar qué aporta cada uno es parte de lo que pide la consigna."],
+    html: () => {
+      const c = DATOS.complejidad, g = DATOS.modelos.granularidad;
+      const fila3 = (k, d, mayor) => {
+        const v = ["arbol", "bosque", "mlp"].map((m) => R.metricas[GRUPO][m][k]);
+        const mejor = mayor ? Math.max(...v) : Math.min(...v);
+        return v.map((x) => `<td${x === mejor ? ' style="color:var(--verde);font-weight:700"' : ""}>${dec(x, d)}</td>`).join("");
+      };
+      return `<div class="grid" style="grid-template-columns:1fr 1fr;gap:64px;align-items:start;margin-top:20px">
+        <div class="hoja" style="padding:22px 28px 12px"><div class="pregunta" style="margin-bottom:6px">Calidad del ranking en octubre (más alto es mejor)</div>${graficoModelos()}</div>
+        <div>
+          <div class="pregunta" style="margin-bottom:14px">Cada modelo, con su papel</div>
+          <table class="tabla" style="font-size:25px"><thead><tr><th></th><th>Árbol</th><th>Bosque</th><th>MLP</th></tr></thead><tbody>
+            <tr><td>Ranking (AP)</td>${fila3("ap", 2, true)}</tr>
+            <tr><td>ROC-AUC</td>${fila3("roc", 2, true)}</tr>
+            <tr><td>Error de calibración</td>${fila3("brier", 3, false)}</tr>
+            <tr><td>F1</td>${fila3("f1", 2, true)}</tr>
+            <tr><td>Su papel</td><td style="font-weight:700;color:var(--azul)">Explica</td><td style="font-weight:700;color:#b0457b">Puntúa</td><td style="font-weight:700;color:#b8681a">Alternativa</td></tr>
+            <tr><td>¿Se puede leer?</td><td style="color:var(--verde);font-weight:700">Sí, ${c.arbol.hojas} reglas</td><td style="color:#9a2f1e">No</td><td style="color:#9a2f1e">No</td></tr>
+          </tbody></table>
+          <div style="margin-top:22px;background:var(--verde);color:#fff;border-radius:6px 6px 6px 22px;padding:16px 26px 18px"><div style="font:700 36px/1 var(--display)">Elegimos el bosque</div>
+            <div style="display:flex;gap:12px;margin-top:12px">${[["1.º", "en AP y ROC-AUC"], [num(g.bosque.distintos), `puntajes distintos (árbol: ${g.arbol.distintos})`], ["≈", "empate con los otros dos"]].map(([k, t]) => `<div style="flex:1;background:rgba(255,255,255,.16);border-radius:4px;padding:8px 14px"><div style="font:700 34px/1 var(--display)">${k}</div><div style="font-size:20px;line-height:1.15;margin-top:4px">${t}</div></div>`).join("")}</div></div>
+        </div>
+      </div>`;
+    },
+  });
+
+  slide({
+    tag: "Técnica de minería", quien: 3, min: 1.0, corto: "Matrices de confusión", chico: true,
+    titulo: "Qué aciertan y en qué se equivocan los cuatro modelos en octubre",
+    notas: ["Mostrar la tabla completa y destacar el bosque, sin ocultar a los demás.", "La accuracy no decide sola: el Dummy saca 0,49 sin saber nada. La métrica principal es Average Precision y se muestra precision, recall y F1 porque son fáciles de defender.", "Matrices: una falsa alarma es un chat que el modelo prioriza y no terminó con una persona; un falso negativo es uno con persona que quedó con menos prioridad. Importan por el uso de la cola, no por ventas.", "Con el corte de 50 los modelos marcan de más porque la proporción de chats con persona bajó de 62 % a 49 % entre septiembre y octubre."],
+    html: () => {
+      const celda = (v, max, acierto, rotulo) => {
+        const a = 0.18 + 0.72 * (v / max);
+        const fondo = acierto ? `rgba(29,92,78,${a})` : `rgba(207,67,44,${a})`;
+        return `<div style="background:${fondo};color:${a > 0.5 ? "#fff" : "#18222d"};border-radius:6px;padding:8px 6px 7px;text-align:center"><div style="font:700 46px/1 var(--display);font-variant-numeric:tabular-nums">${num(v)}</div><div style="font-size:18px;margin-top:2px;opacity:.92">${rotulo}</div></div>`;
+      };
+      const matriz = (id) => {
+        const r = R.metricas[GRUPO][id], max = Math.max(r.tn, r.fp, r.fn, r.tp);
+        const suave = "font-size:18px;color:var(--tinta-2);line-height:1.1";
+        return `<div class="hoja" style="padding:10px 22px 14px;border-top:8px solid ${id === "dummy" ? "#8a94a0" : COL[id]}">
+          <div style="font:700 30px/1 var(--display);margin-bottom:6px;color:${id === "dummy" ? "#46535f" : COL[id]}">${NOMBRE[id]}</div>
+          <div style="display:grid;grid-template-columns:30px 100px 1fr 1fr;gap:8px">
+            <div style="${suave};grid-area:1 / 3 / 2 / 5;text-align:center;font-weight:700">El modelo dice</div>
+            <div style="${suave};grid-area:2 / 3;text-align:center">sin persona</div><div style="${suave};grid-area:2 / 4;text-align:center">con persona</div>
+            <div style="${suave};grid-area:3 / 1 / 5 / 2;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;font-weight:700">En realidad</div>
+            <div style="${suave};grid-area:3 / 2;align-self:center">sin persona</div><div style="grid-area:3 / 3">${celda(r.tn, max, true, "acierta")}</div><div style="grid-area:3 / 4">${celda(r.fp, max, false, "falsa alarma")}</div>
+            <div style="${suave};grid-area:4 / 2;align-self:center">con persona</div><div style="grid-area:4 / 3">${celda(r.fn, max, false, "se le escapó")}</div><div style="grid-area:4 / 4">${celda(r.tp, max, true, "acierta")}</div>
+          </div></div>`;
+      };
+      return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px 34px;margin-top:10px">${["dummy", "arbol", "bosque", "mlp"].map(matriz).join("")}</div>`;
+    },
+  });
+
+  slide({
+    tag: "Conclusión", quien: 4, min: 0.8, corto: "El ranking funciona", chico: true,
+    titulo: "El ranking funciona: a mayor puntaje, más chats terminan con una persona",
+    notas: ["Ordenamos los chats de octubre del puntaje más alto al más bajo y los partimos en cinco grupos iguales (unos 208 chats cada uno).", "En el grupo de puntajes más altos, 92 de cada 100 terminan con una persona; en el de puntajes más bajos, 5 de cada 100. Y los primeros grupos también reciben más mensajes de una persona.", "Esto describe conducta histórica del equipo, no necesidad. El orden es consistente con la atención real: la correlación entre puntaje y mensajes humanos es 0,63 (Spearman)."],
+    html: () => {
+      const filas = R.tramos[GRUPO + "/bosque"].filas;
+      const conPersona = filas.map((f) => f.tasa_respuesta * f.episodios);
+      const total = conPersona.reduce((a, v) => a + v, 0);
+      const dosPrimeros = Math.round(((conPersona[0] + conPersona[1]) / total) * 100);
+      const parte = Math.round(((filas[0].episodios + filas[1].episodios) / filas.reduce((a, f) => a + f.episodios, 0)) * 100);
+      return `<div class="grid cuerpo" style="grid-template-columns:1.3fr .7fr;gap:48px;align-items:start;margin-top:16px">
+        <div class="hoja" style="padding:18px 26px 8px"><div class="pregunta" style="margin-bottom:2px">Los ${num(filas.reduce((a, f) => a + f.episodios, 0))} chats de octubre, ordenados por puntaje y cortados en cinco tramos iguales</div><div style="font-size:23px;color:var(--tinta-2);margin-bottom:4px">En cada tramo: ¿qué porcentaje terminó con una persona?</div>${graficoGrupos()}</div>
+        <div style="display:grid;gap:22px;padding-top:6px">
+          ${tile(`${Math.round(filas[0].tasa_respuesta * 100)} → ${Math.round(filas[filas.length - 1].tasa_respuesta * 100)} %`, "terminan con persona: del tramo de mayor puntaje al de menor.", "tile--hilo tile--chico")}
+          ${tile(`${dosPrimeros} %`, `de todos los chats con persona están en el ${parte} % de arriba de la cola.`, "tile--verde tile--chico")}
+        </div>
+      </div>`;
+    },
+  });
+
+  slide({
+    tag: "Conclusión", quien: 4, min: 0.8, corto: "Más allá de los productos impulsados", chico: true,
     titulo: "Gran parte del resultado es reconocer los productos que la empresa deriva a personas",
     notas: ["Ambos médicos y chalecos son los productos que la empresa impulsa con anuncios y refuerza con atención humana: el 44 % de los chats de octubre, y el 94 % termina con una persona.", "El modelo separa muy bien esos chats del resto, y de ahí viene buena parte del 0,88. Dentro de ese grupo no distingue (ROC-AUC alrededor de 0,5).", "En el resto de los chats, el modelo aporta una mejora moderada: entre 1,6 y 2,5 veces mejor que el azar. Solo hay 84 chats con persona en ese grupo, así que el margen de error es grande.", "Decirlo de frente antes de que lo pregunten."],
     html: () => {
@@ -508,9 +606,9 @@
   });
 
   slide({
-    clase: "app", tag: "Aplicación funcional", quien: 5, min: 1.8, corto: "Probalo", chico: true,
+    clase: "app", tag: "Aplicación funcional", quien: 5, min: 1.3, corto: "Probalo", chico: true,
     titulo: "Probalo: armá un chat y mirá qué responden los modelos",
-    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa. Aclarar que el número es un puntaje de prioridad (0 a 100), no una probabilidad calibrada.", "El bosque da el puntaje; abajo aparecen las reglas del árbol, que explican qué señales de producto pesan.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
+    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa. Aclarar que el número es un puntaje de prioridad (0 a 100), no una probabilidad calibrada.", "La prioridad sugerida ubica el puntaje del bosque entre los chats de octubre: un puntaje alto puede salir Media si muchos chats (los de ambos médicos y chalecos) puntúan todavía más alto.", "El bosque da el puntaje; abajo aparecen las reglas del árbol, que explican qué señales de producto pesan.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
     html: () => `<div class="sim">
         <div>
           <div class="bloque-sim"><h5>Ejemplos</h5><div class="ejemplos" id="s-ejemplos">${EJEMPLOS.map((e, i) => `<button type="button" data-i="${i}">${esc(e.nombre)}</button>`).join("")}</div></div>
@@ -535,14 +633,36 @@
   });
 
   slide({
-    tag: "Aplicación funcional", quien: 5, min: 0.3, corto: "El árbol que explica", chico: true,
+    tag: "Aplicación funcional", quien: 5, min: 0.7, corto: "Del puntaje a la prioridad", chico: true,
+    titulo: "Del puntaje a la prioridad: la cola de chats se divide en cuatro niveles",
+    notas: ["Cada chat recibe un puntaje del bosque; su lugar en la cola de chats pendientes define el nivel: Alta (los primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el resto).", "Las cifras son por nivel y no acumuladas: en octubre terminan con una persona 94, 62, 31 y 7 de cada 100 chats. En septiembre la separación fue parecida.", "Los cortes son una propuesta para validar con la gerencia y se definen por posición en la cola y no por probabilidad, porque los puntajes no están calibrados.", "El modelo ordena la cola: no decide por el operador. El prototipo es offline; la integración con el sistema de chats de Hitelac queda como trabajo aparte."],
+    html: () => {
+      const nv = Object.fromEntries(R.niveles.test.map((f) => [f.nivel, f]));
+      const sv = Object.fromEntries(R.niveles.validation.map((f) => [f.nivel, f]));
+      const orden = ["Alta", "Media", "Baja", "Base"];
+      const color = { Alta: "#cf432c", Media: "#d9822b", Baja: "#f2c230", Base: "#1d5c4e" };
+      const sub = { Alta: "los primeros 30 % de la cola", Media: "del 30 al 50 %", Baja: "del 50 al 70 %", Base: "el 30 % restante" };
+      const columnas = orden.map((n) => `<div>
+          <div style="background:${color[n]};color:${n === "Baja" ? "#18222d" : "#fff"};padding:12px 18px;border-radius:6px 6px 0 0"><div style="font:700 34px var(--display)">${n}</div><div style="font-size:21px">${sub[n]}</div></div>
+          <div class="hoja" style="border-radius:0 0 6px 20px;padding:16px 14px 18px;text-align:center"><div class="cifra med" style="font-size:76px">${Math.round(nv[n].tasa * 100)}<span style="font-size:26px;font-weight:500"> de 100</span></div><div class="chico" style="font-size:22px">terminan con una persona</div></div>
+        </div>`).join("");
+      const mitad = Math.round((nv.Alta.parte_de_los_con_persona + nv.Media.parte_de_los_con_persona) * 100);
+      return `<p class="texto" style="margin-top:20px;font-size:28px">Cada chat recibe un puntaje y, según su lugar en la cola, un nivel de prioridad. Cifras de octubre:</p>
+        <div style="display:grid;grid-template-columns:3fr 2fr 2fr 3fr;gap:14px;margin-top:20px">${columnas}</div>
+        <p class="texto fuerte" style="margin-top:22px;font-size:29px">Alta y Media son la mitad de los chats y reúnen a ${mitad} de cada 100 que terminan con una persona.</p>
+        <div class="cosido" style="margin-top:16px;padding:16px 28px"><span class="texto" style="font-size:24px">Propuesta para validar con la gerencia. Los cortes (30, 50 y 70 %) se definen por el lugar en la cola y no por probabilidad, porque los puntajes no están calibrados. En septiembre la separación fue parecida: ${orden.map((n) => Math.round(sv[n].tasa * 100)).join(", ")} de cada 100.</span></div>`;
+    },
+  });
+
+  slide({
+    tag: "Aplicación funcional", quien: 5, min: 0.2, corto: "El árbol que explica", chico: true,
     titulo: "El árbol al lado: 39 reglas que explican qué mira el bosque",
     notas: ["Opcional si falta tiempo. Se puede abrir cualquier rama.", "Resaltado en amarillo: el camino que recorre el chat que armaste en la aplicación.", "Es lo que habilita una conversación con la gerencia: las reglas se pueden discutir y corregir. Aclarar que es una aproximación explicable, con calidad parecida al bosque pero no idéntico."],
-    html: () => `<div class="grid cuerpo" style="grid-template-columns:1.3fr .7fr;gap:50px;margin-top:20px">
+    html: () => `<div class="grid" style="grid-template-columns:1.45fr .55fr;gap:44px;margin-top:20px">
         <div class="arbol-vista" id="s-arbol"></div>
-        <div style="display:grid;gap:24px;align-content:start">
-          <div class="cosido"><div class="pregunta">Cómo leerlo</div><p class="texto" style="margin-top:6px;font-size:27px">Cada pregunta divide los chats en dos grupos. La hoja final dice qué porcentaje de esos chats terminó con una persona. Rojo: casi siempre. Verde: casi nunca.</p></div>
-          <div class="hoja"><div class="pregunta">Qué es y qué no es</div><p class="texto" style="margin-top:6px;font-size:27px">Rinde parecido al bosque (${dec(ap(GRUPO, "arbol"), 2)} contra ${dec(ap(GRUPO, "bosque"), 2)}), pero no es el mismo modelo: sirve para entender, no para puntuar. ${DATOS.complejidad.arbol.hojas} hojas, ${DATOS.complejidad.arbol.profundidad} niveles como máximo.</p></div>
+        <div style="display:grid;gap:20px;align-content:start">
+          <div class="nota nota--verde"><b>Cómo leerlo</b><span>Cada pregunta divide los chats en dos. Rojo: casi siempre con persona. Verde: casi nunca.</span></div>
+          <div class="nota nota--azul"><b>Qué es</b><span>Rinde parecido al bosque (${dec(ap(GRUPO, "arbol"), 2)} contra ${dec(ap(GRUPO, "bosque"), 2)}) pero sirve para entender, no para puntuar.</span></div>
         </div></div>`,
     alEntrar: () => renderArbol(),
   });
@@ -550,24 +670,28 @@
   slide({
     tag: "Conclusión", quien: 4, min: 1.0, corto: "Conclusión", chico: true,
     titulo: "Conclusión: sí se puede ordenar la atención, con límites que conocemos",
-    notas: ["Volver a la hipótesis y responderla en una frase.", "Decir los límites antes de que los pregunten: conducta histórica, un mes de prueba, derivaciones por producto.", "Cerrar con los próximos pasos y abrir preguntas."],
-    html: () => `<div class="grid g3 cuerpo" style="gap:44px;align-items:start">
-        <div class="hoja"><div class="pregunta">Lo que probamos</div><ul class="puntos chico" style="margin-top:12px">
-          <li>Qué pide el cliente y qué ofrece el bot predicen dónde interviene una persona: ${dec(ap(GRUPO, "bosque"))} contra ${dec(ap("operativas_sin_largo", "bosque"))} sin esa información.</li>
-          <li>Revisar el 20 % de arriba acierta ${Math.round(top20().precision * 100)} de cada 100 y cubre el ${Math.round(top20().cobertura * 100)} % de los chats atendidos.</li>
-          <li>El bosque puntúa los chats y un árbol de ${DATOS.complejidad.arbol.hojas} hojas explica qué señales de producto pesan.</li></ul></div>
-        <div class="hoja"><div class="pregunta" style="color:#cf432c">Lo que no afirmamos</div><ul class="puntos hilo chico" style="margin-top:12px">
-          <li>Que esos chats necesitaran a una persona: medimos conducta histórica.</li>
-          <li>Que el modelo ayude mucho con ambos y chalecos: ahí casi todos van a una persona.</li>
-          <li>Efecto sobre las ventas: no hay etiqueta de venta.</li>
-          <li>Estabilidad futura: un solo mes de prueba, y las campañas cambian.</li></ul></div>
-        <div class="hoja"><div class="pregunta">Próximos pasos</div><ul class="puntos chico" style="margin-top:12px">
-          <li>Validar una muestra de chats con el gerente.</li>
-          <li>Confirmar con Hitelac si algunas familias se derivan por regla.</li>
-          <li>Recalibrar los puntajes y definir con el equipo cuándo un chat es prioridad alta.</li>
-          <li>Sumar una etiqueta de venta para medir impacto.</li></ul></div>
+    notas: ["Volver a la hipótesis y responderla en una frase.", "Decir los límites antes de que los pregunten: conducta histórica, un mes de prueba, derivaciones por producto, sin datos de ventas.", "Cerrar con los próximos pasos y abrir preguntas."],
+    html: () => {
+      const t = top20();
+      return `<div class="grid" style="grid-template-columns:1.15fr 1fr 1fr;gap:26px;margin-top:22px;align-items:start">
+        <div class="col col--verde"><div class="col__h">Lo que probamos</div>
+          <div class="col__i"><b>${dec(ap(GRUPO, "bosque"))} contra ${dec(ap("operativas_sin_largo", "bosque"))}</b><span>qué pide el cliente y qué ofrece el bot predicen dónde interviene una persona</span></div>
+          <div class="col__i"><b>${Math.round(t.precision * 100)} de 100</b><span>terminan con persona entre el 20 % de mayor puntaje; ahí están ${Math.round(t.cobertura * 100)} de cada 100 de todos los que la necesitan</span></div>
+          <div class="col__i"><b>Bosque y árbol</b><span>el bosque puntúa; un árbol de ${DATOS.complejidad.arbol.hojas} hojas explica</span></div></div>
+        <div class="col col--hilo"><div class="col__h">Lo que no afirmamos</div>
+          <div class="col__l">Que esos chats necesitaran a una persona</div>
+          <div class="col__l">Que ayude mucho con ambos y chalecos</div>
+          <div class="col__l">Efecto sobre las ventas</div>
+          <div class="col__l">Que lo no detectado no interese</div>
+          <div class="col__l">Estabilidad: un solo mes de prueba y campañas que cambian</div></div>
+        <div class="col col--azul"><div class="col__h">Próximos pasos</div>
+          <div class="col__l">Validar una muestra con el gerente</div>
+          <div class="col__l">Confirmar con Hitelac las derivaciones por producto</div>
+          <div class="col__l">Recalibrar y fijar los niveles con el equipo</div>
+          <div class="col__l">Piloto con una etiqueta de venta</div></div>
       </div>
-      <p class="sub" style="margin-top:44px;max-width:1500px;color:var(--tinta);font-weight:600">Con lo que el bot ya respondió, se puede ordenar la atención humana mucho mejor que al azar.</p>`,
+      <div class="banda banda--verde" style="margin-top:26px"><span class="banda__t" style="font-size:34px">Con lo que el bot ya respondió, se puede ordenar la atención humana mucho mejor que al azar.</span></div>`;
+    },
   });
 
   slide({
@@ -583,6 +707,25 @@
       </div>`;
     },
   });
+
+  slide({
+    anexo: true, tag: "Anexo", quien: null, min: 0, corto: "Largo del texto", chico: true,
+    titulo: "Anexo: por qué sacamos el largo del mensaje del modelo",
+    notas: ["El largo del primer mensaje del cliente predecía muy bien, pero se concentra en pocos valores exactos: es la firma del mensaje precargado de cada anuncio.", "Eso cambia con cualquier retoque, hasta un signo de exclamación, y el modelo se rompería. Lo sacamos y medimos qué queda.", "Sin el largo de texto, las variables operativas solas quedan al nivel del azar; las comerciales sostienen todo."],
+    html: () => `<div class="grid" style="grid-template-columns:1.5fr .7fr;gap:46px;align-items:start;margin-top:22px">
+        <div>
+          <div class="pregunta" style="margin-bottom:12px">Los tres largos más frecuentes del primer mensaje del cliente</div>
+          ${R.largo_texto.map((f) => `<div class="regla"><div class="regla__a"><b>${f.caracteres}</b>caracteres</div><span class="regla__f">→</span><div class="regla__b">piden ${esc(f.familia.toLowerCase())}<small>${pct(f.parte_familia)} de esos chats</small></div><span class="regla__f">→</span><div class="regla__c ${f.tasa > 0.6 ? "hilo" : f.tasa < 0.35 ? "verde" : ""}">${pct(f.tasa)} con persona</div></div>`).join("")}
+          <div class="nota nota--hilo" style="margin-top:18px"><span>Si cambian el texto del anuncio, aunque sea con un signo de exclamación, el valor cambia y un modelo que depende de eso se rompe sin avisar.</span></div>
+        </div>
+        <div style="display:grid;gap:20px">
+          ${tile(dec(ap("operativas", "bosque")), "Ranking con las variables operativas y el largo del mensaje.", "tile--chico")}
+          ${tile(dec(ap("operativas_sin_largo", "bosque")), `Las mismas variables sin el largo: ya no mejoran al azar (${dec(R.metricas.operativas.dummy.ap)}). Ese poder era la firma del anuncio.`, "tile--chico tile--hilo")}
+          <div class="nota nota--verde"><b>El modelo final no lo usa</b><span>Se apoya en lo que pidió y ofreció el bot, y llega a ${dec(ap("completo_sin_largo", "bosque"))}.</span></div>
+        </div>
+      </div>`,
+  });
+
 
   slide({
     anexo: true, tag: "Anexo", quien: null, min: 0, corto: "Métricas completas", chico: true,
@@ -628,6 +771,7 @@
     const el = document.createElement("section");
     el.className = "slide" + (s.clase ? " " + s.clase : "");
     el.dataset.i = i;
+    el.style.setProperty("--acento", ACENTOS[s.tag] || "#1d5c4e");
     el.innerHTML = etiquetaHTML(s.tag, s.quien) + (s.titulo ? `<h2 class="titulo${s.chico ? " medio" : ""}">${esc(s.titulo)}</h2>` : "") + s.html();
     cont.appendChild(el);
   });
@@ -752,9 +896,11 @@
     const p = motor.predecirTodos(M, x);
     const camino = motor.caminoArbol(M.arbol, x);
     const votos = motor.votosBosque(M.bosque, x);
+    const nivelDe = (arriba) => (arriba <= 30 ? { clase: "alta", texto: "Alta" } : arriba <= 50 ? { clase: "media", texto: "Media" } : arriba <= 70 ? { clase: "baja", texto: "Baja" } : { clase: "base", texto: "Base" });
+    const prioridad = nivelDe(motor.posicionEnRanking(M.cuantiles_test.bosque, p.bosque));
     const tarjeta = (id, extra, sub) => {
       const v = p[id];
-      return `<div class="modelo ${id}"><div class="nombre"><span>${NOMBRE[id]}</span><small>${sub}</small></div><div class="prob">${Math.round(v * 100)}</div><div class="barra"><i style="width:${v * 100}%"></i></div><div class="veredicto ${v >= 0.5 ? "si" : "no"}">${v >= 0.5 ? "Sobre el corte de 50" : "Bajo el corte de 50"}</div><div class="extra">${extra}</div></div>`;
+      return `<div class="modelo ${id}"><div class="nombre"><span>${NOMBRE[id]}</span><small>${sub}</small></div><div class="prob">${Math.round(v * 100)}</div><div class="barra"><i style="width:${v * 100}%"></i></div><div class="veredicto ${v >= 0.5 ? "si" : "no"}">${v >= 0.5 ? "Sobre el corte de 50" : "Bajo el corte de 50"}</div>${id === "bosque" ? `<div class="prio ${prioridad.clase}">Prioridad sugerida: ${prioridad.texto}</div>` : ""}<div class="extra">${extra}</div></div>`;
     };
     const pos = (id) => {
       if (id === "dummy") return "No mira el chat: repite lo que vio";
