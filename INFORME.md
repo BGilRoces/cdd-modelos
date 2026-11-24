@@ -105,11 +105,60 @@ Con el 20 % de arriba se revisan unos 210 chats de 1.042 y casi todos terminan c
 
 Se dividió el test en cinco tramos según el puntaje. En el bosque con 56 variables, el tramo de mayor puntaje tuvo 4,2 mensajes humanos por chat y 91 % con foto o documento; el de menor puntaje, 0,2 y 1 %. La correlación de Spearman entre puntaje y cantidad de mensajes humanos es 0,63 (árbol 0,62). Es el mismo orden que con las 58 variables. Esto describe conducta histórica, no necesidad.
 
+## ¿Cuánto aporta el modelo más allá de los productos impulsados?
+
+Ambos médicos y chalecos son los productos que la empresa impulsa con publicidad y refuerza con atención humana (dato aportado por el grupo). Son el 44 % de los chats de octubre y el 94 % termina con una persona, de modo que reconocerlos explica buena parte del resultado. Para medir cuánto queda por encima de eso, se evaluó el bosque (56 variables) por separado en cada grupo de chats de octubre:
+
+| Grupo de chats | Chats | Con persona | Average Precision | ROC-AUC |
+|---|---|---|---|---|
+| Todos | 1.042 | 49 % | 0,877 | 0,900 |
+| Con ambos médicos o chalecos | 455 (44 %) | 94 % | 0,924 | 0,432 |
+| Todo lo demás | 587 (56 %) | 14 % | 0,296 | 0,682 |
+
+- Dentro de ambos y chalecos el modelo no distingue (ROC-AUC alrededor de 0,5): casi todos terminan con una persona.
+- En el resto, el modelo ordena mejor que el azar (Average Precision 0,296 contra 0,143), pero la mejora es moderada. El árbol da 0,261 y el MLP 0,291.
+
+Si el gerente revisa solo los chats con mayor puntaje del resto (bosque, octubre):
+
+| Se revisa | Chats | Con persona | Cobertura de los 84 | Contra el azar |
+|---|---|---|---|---|
+| 10 % | 58 | 36 % | 25 % | 2,5 veces |
+| 20 % | 117 | 23 % | 32 % | 1,6 veces |
+| 30 % | 176 | 23 % | 48 % | 1,6 veces |
+| 50 % | 293 | 23 % | 80 % | 1,6 veces |
+
+Solo hay 84 chats con persona en este grupo, así que estos porcentajes tienen mucho margen de error. En una frase: el modelo reconoce con claridad los productos que se derivan a personas y, en el resto, mejora moderadamente la prioridad.
+
+## Evolución por mes y anuncios
+
+| Mes | Chats | Con anuncio | Con persona | Piden ambos | Piden broches |
+|---|---|---|---|---|---|
+| Marzo | 51 | 0 % | 78 % | 0 % | 0 % |
+| Abril | 63 | 0 % | 90 % | 0 % | 3 % |
+| Mayo | 61 | 0 % | 84 % | 0 % | 5 % |
+| Junio | 54 | 0 % | 83 % | 0 % | 2 % |
+| Julio | 173 | 65 % | 39 % | 3 % | 35 % |
+| Agosto | 1.286 | 89 % | 51 % | 32 % | 41 % |
+| Septiembre | 1.251 | 93 % | 60 % | 43 % | 25 % |
+| Octubre | 1.042 | 91 % | 49 % | 35 % | 30 % |
+
+"Con anuncio" suma los anuncios observados y los inferidos por la regla de texto ("hola" más pedido de información). La etiqueta "observado" aparece recién desde el 24 de agosto, así que probablemente refleja desde cuándo se registra el dato y no desde cuándo hay anuncios.
+
+- Hasta junio no hay chats de anuncio: unos 50 por mes, casi todos con una persona. Desde julio aparecen y en agosto el volumen se multiplica por más de veinte.
+- El entrenamiento es casi todo agosto: 1.233 de los 1.635 chats de entrenamiento.
+- De agosto a octubre cambia qué se promociona (ambos pasa de 32 a 43 y a 35 %) y con eso cambia la proporción con persona (51, 60 y 49 %). Es consistente con una rotación de campañas, aunque estos datos no permiten confirmarlo.
+- Hay que reentrenar cuando cambien las campañas.
+
+## Cómo leer el puntaje
+
+El número que devuelve cada modelo (de 0 a 100 en la aplicación) es un **puntaje de prioridad**: ordena bien los chats, pero no es una probabilidad calibrada. En octubre el bosque predice en promedio más intervención humana que la real y exagera en los valores intermedios. Para uso real habría que recalibrarlo con cada período.
+
 ## Limitaciones
 
 - La etiqueta mide si una persona respondió, no si el chat lo necesitaba.
 - El test es retrospectivo (octubre ya había sido inspeccionado) y cubre un solo mes.
-- Hay un fuerte componente de producto: buena parte de lo que predice el modelo puede ser una regla de derivación del negocio. Si cambia el catálogo o las reglas del bot, hay que reentrenar.
+- Hay un fuerte componente de producto: buena parte de lo que predice el modelo es una regla de derivación del negocio (ambos médicos y chalecos). En el resto de los chats la mejora es moderada. Si cambia el catálogo o las reglas del bot, hay que reentrenar.
+- Los datos son casi todos de agosto a octubre y los anuncios cambian: el modelo aprendió de un período corto y puede degradarse cuando cambien las campañas.
 - La hipótesis sobre el largo del texto (mensaje precargado del anuncio) no está verificada porque la copia del repo no trae el contenido de los mensajes.
 - Las 56 variables son un análisis adicional: el protocolo fija las 58.
 - No se recalibró: se reporta Brier y la curva de calibración (`figuras/05_calibracion.png`), pero los puntajes no son probabilidades confiables sin recalibrar.
@@ -127,6 +176,10 @@ Se dividió el test en cinco tramos según el puntaje. En el bosque con 56 varia
 | `atencion_por_tramo_test.csv` | ranking contra atención humana observada |
 | `importancia_bloques.csv` | caída de la métrica al permutar cada bloque |
 | `sensibilidad_contactos.csv` | test con un episodio por contacto |
+| `segmentos_test.csv` | métricas en octubre para chats con ambos o chalecos y para el resto |
+| `cobertura_top_k_resto_test.csv` | qué pasa si se revisa solo la parte de arriba dentro del resto |
+| `evolucion_mensual.csv` | volumen, anuncios, mezcla de productos y respuesta humana por mes |
+| `composicion_por_mes.csv` | cuántos chats de cada mes hay en train, validation, test y purgados |
 | `busqueda.csv` | las 107 configuraciones probadas por grupo de variables |
 | `configuracion.json` | configuraciones elegidas, particiones, hashes, versiones |
 | `figuras/` | gráficos 01 a 11 |

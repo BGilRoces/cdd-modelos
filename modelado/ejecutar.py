@@ -10,7 +10,7 @@ import sklearn
 from sklearn.metrics import average_precision_score, roc_auc_score
 
 from . import config as cfg
-from . import datos, entrenamiento, evaluacion, graficos, modelos, particiones
+from . import datos, entrenamiento, evaluacion, graficos, modelos, particiones, segmentos
 
 PARTICIONES = ("train", "validation", "test")
 
@@ -134,6 +134,19 @@ def correr(salida):
         names=["modelo"],
     ).reset_index(level=0)
 
+    impulsado = segmentos.es_impulsado(matriz)
+    impulsado_test = impulsado[mascara["test"]].to_numpy()
+    por_segmento = []
+    cobertura_resto = []
+    for (grupo, nombre), s in scores.items():
+        for fila in segmentos.metricas_por_segmento(y_test, s["test"], impulsado_test):
+            por_segmento.append({"grupo": grupo, "modelo": nombre, **fila})
+        resto = ~impulsado_test
+        tabla = evaluacion.cobertura_top_k(y_test[resto], s["test"][resto])
+        cobertura_resto.append(tabla.assign(modelo=f"{grupo}/{nombre}"))
+    evolucion = segmentos.evolucion_mensual(df, matriz)
+    composicion = segmentos.composicion_entrenamiento(df, df.particion)
+
     _guardar_csv(pd.DataFrame(ensayos), salida / "busqueda.csv")
     _guardar_csv(metricas, salida / "metricas.csv")
     _guardar_csv(pd.DataFrame(intervalos), salida / "intervalos_test.csv")
@@ -155,6 +168,10 @@ def correr(salida):
     _guardar_csv(aporte, salida / "aporte_comerciales_test.csv")
     _guardar_csv(cobertura, salida / "cobertura_top_k_test.csv")
     _guardar_csv(pd.DataFrame(entre_modelos), salida / "diferencias_entre_modelos_test.csv")
+    _guardar_csv(pd.DataFrame(por_segmento), salida / "segmentos_test.csv")
+    _guardar_csv(pd.concat(cobertura_resto), salida / "cobertura_top_k_resto_test.csv")
+    _guardar_csv(evolucion, salida / "evolucion_mensual.csv")
+    _guardar_csv(composicion.reset_index(), salida / "composicion_por_mes.csv")
 
     graficos.comparacion_ap(metricas, salida / "figuras" / "01_average_precision.png")
     graficos.curvas(y_test, scores, salida / "figuras" / "02_curvas_precision_recall.png", "pr")

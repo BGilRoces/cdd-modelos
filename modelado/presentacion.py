@@ -20,7 +20,7 @@ ETIQUETAS = {
     "prefix_messages": "Mensajes hasta la respuesta del bot",
     "prefix_inbound": "Mensajes del cliente",
     "prefix_bot_messages": "Mensajes del bot",
-    "prefix_duration_seconds": "Segundos hasta la respuesta del bot",
+    "prefix_duration_seconds": "Duración hasta la respuesta del bot (segundos)",
     "hour": "Hora",
     "weekday": "Día de la semana",
     "business_hours": "Dentro del horario de atención",
@@ -171,7 +171,16 @@ def resultados_agregados(df, matriz, salida):
     mensual = {p: {"episodios": int((df.particion == p).sum()), "positivos": round(float(y[df.particion == p].mean()), 4)}
                for p in ("train", "validation", "test")}
     mensual["purgado"] = {"episodios": int((df.particion == "purgado").sum()), "positivos": None}
+    seg = pd.read_csv(salida / "segmentos_test.csv")
+    seg = seg[seg.grupo == GRUPO]
+    segmentos_ = {m: g.set_index("segmento")[["chats", "con_humano", "prevalencia", "average_precision", "roc_auc"]]
+                  .round(4).to_dict("index") for m, g in seg.groupby("modelo")}
+    top_resto = pd.read_csv(salida / "cobertura_top_k_resto_test.csv")
+    top_resto = top_resto[top_resto.modelo == GRUPO + "/bosque"].drop(columns="modelo").round(4).to_dict("records")
+    meses = pd.read_csv(salida / "evolucion_mensual.csv").round(4).to_dict("records")
+    composicion = pd.read_csv(salida / "composicion_por_mes.csv").to_dict("records")
     return {
+        "segmentos": segmentos_, "top_k_resto": top_resto, "meses": meses, "composicion": composicion,
         "familias": familias, "largo_texto": largo, "metricas": tabla, "top_k": top, "tramos": tramos,
         "diferencias": diferencias, "aporte": aporte, "bloques": bloques, "particiones": mensual,
         "embudo": {"mensajes_fuente": 47403, "mensajes": 35294, "contactos": 3712, "sesiones": 4570,

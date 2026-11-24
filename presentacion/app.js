@@ -246,7 +246,7 @@
   /* ---------- diapositivas ---------- */
   const top20 = () => R.top_k[GRUPO + "/bosque"].find((f) => f.fraccion === 0.2);
   const ap = (g, m) => R.metricas[g][m].ap;
-  const etqProb = (p) => `<span class="etq-prob ${p >= 0.7 ? "alta" : p <= 0.3 ? "baja" : "media"}">${pct(p)}</span>`;
+  const etqProb = (p) => `<span class="etq-prob ${p >= 0.7 ? "alta" : p <= 0.3 ? "baja" : "media"}">${Math.round(p * 100)}</span>`;
 
   function etiquetaHTML(texto, quien) {
     const q = quien === null ? "" : `<span class="etq-quien">Presenta <b data-quien="${quien}">${esc(EQUIPO[quien].nombre)}</b></span>`;
@@ -262,19 +262,19 @@
     notas: ["Saludar y presentar al grupo en diez segundos.", "Abrir con la pregunta, no con la tecnología: el público es la Gerencia Comercial y Técnica.", "Avisar que la presentación es también la aplicación: los modelos corren dentro de esta página."],
     html: () => `
       <h1 class="titulo">¿A qué chat le toca una persona primero?</h1>
-      <p class="sub">Un modelo que ordena los chats de WhatsApp de Hitelac según la probabilidad de que necesiten a una persona.</p>
+      <p class="sub">Un modelo que ordena los chats de WhatsApp de Hitelac según qué tan probable es que necesiten a una persona.</p>
       <p class="chico" style="margin-top:26px">UADE · Ciencia de Datos · Docente: Santiago Martín</p>
       <div class="equipo-lista">${EQUIPO.map((e, i) => `<div><b data-quien="${i}">${esc(e.nombre)}</b><span>${esc(e.rol)}</span></div>`).join("")}</div>
       <div class="bandeja"><div class="hoja">
         <h4>Bandeja ordenada por el modelo</h4>
         ${EJEMPLOS.map((e) => ({ e, p: probEjemplo(e) })).sort((a, b) => b.p - a.p).map(({ e, p }) => `
           <div class="fila-chat"><div><div class="quien">${esc(e.nombre.split(",")[0])}</div><div class="detalle">${esc(detalleEjemplo(e))}</div></div>${etqProb(p)}</div>`).join("")}
-        <div class="pie">Cinco chats de ejemplo evaluados en vivo por el bosque. El número es la probabilidad de que intervenga una persona.</div>
+        <div class="pie">Cinco chats de ejemplo evaluados en vivo por el bosque. El número es el puntaje de prioridad, de 0 a 100: cuanto más alto, más arriba en la bandeja.</div>
       </div></div>`,
   });
 
   slide({
-    tag: "Hipótesis y resultado", quien: 0, min: 1.0, corto: "La respuesta primero",
+    tag: "Hipótesis y resultado", quien: 0, min: 0.9, corto: "La respuesta primero",
     titulo: "Con lo que el bot ya respondió, Hitelac puede saber qué chats van a necesitar a una persona",
     notas: ["Conclusión primero, como pide la consigna.", "Leer las tres respuestas de la hipótesis: qué, para quién, cómo entrega valor.", "Explicar 'acierto' en términos de negocio: de los chats que el modelo marca primero, cuántos terminan con una persona."],
     html: () => {
@@ -295,7 +295,7 @@
   });
 
   slide({
-    tag: "Dominio y problema", quien: 0, min: 1.0, corto: "Cómo viaja un chat",
+    tag: "Dominio y problema", quien: 0, min: 0.8, corto: "Cómo viaja un chat",
     titulo: "Un chat nace en un anuncio y pasa por un bot antes de llegar a una persona",
     notas: ["Hitelac importa telas e insumos de confección y va a sumar prendas y calzado: el volumen de chats crece.", "El bot responde con la información real de la base de productos, pero no ve fotos ni audios.", "El problema: nadie sabe de antemano cuáles chats van a necesitar a una persona."],
     html: () => `
@@ -313,7 +313,7 @@
   });
 
   slide({
-    tag: "Dominio y problema", quien: 0, min: 0.7, corto: "Valor para el negocio",
+    tag: "Dominio y problema", quien: 0, min: 0.6, corto: "Valor para el negocio",
     titulo: "Revisar uno de cada cinco chats, en orden, cubre casi el doble que hacerlo al azar",
     notas: ["Traducir las métricas a plata y tiempo: menos lectura con el mismo foco.", "Aclarar el límite: el modelo mide dónde hoy interviene el equipo, no si el chat lo necesitaba.", "No prometemos ventas: no hay datos de venta en el caso."],
     html: () => {
@@ -337,7 +337,7 @@
   });
 
   slide({
-    tag: "Arquitectura de la solución", quien: 1, min: 1.0, corto: "Arquitectura",
+    tag: "Arquitectura de la solución", quien: 1, min: 0.9, corto: "Arquitectura",
     titulo: "Todo el recorrido de los datos, de la fuente al puntaje, funciona sin internet",
     notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación.", "Remarcar la regla clave: las variables usan solo lo que existe cuando el bot responde.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
     html: () => `
@@ -356,7 +356,7 @@
   });
 
   slide({
-    tag: "Arquitectura de la solución", quien: 1, min: 0.8, corto: "Los datos",
+    tag: "Arquitectura de la solución", quien: 1, min: 0.7, corto: "Los datos",
     titulo: "Partimos de 47 mil mensajes y llegamos a 3.981 conversaciones con resultado conocido",
     notas: ["Un episodio es una conversación en el momento en que el bot da su primera respuesta comercial.", "Maduro significa que ya pasaron las 24 horas y sabemos si respondió una persona.", "Decir qué falta: ventas, el texto de los mensajes en la copia compartida y quién respondió cada chat."],
     html: () => {
@@ -374,7 +374,7 @@
   });
 
   slide({
-    tag: "Análisis exploratorio", quien: 2, min: 1.0, corto: "Qué pide el cliente", chico: true,
+    tag: "Análisis exploratorio", quien: 2, min: 0.8, corto: "Qué pide el cliente", chico: true,
     titulo: "Según qué producto pide el cliente, la intervención humana va del 14 % al 99 %",
     notas: ["Este es el hallazgo comercial más fuerte: el producto pedido marca el destino del chat.", "Broches son la mayoría de los pedidos y casi siempre los resuelve el bot; chalecos y la familia 'ambos' casi siempre pasan a una persona.", "Las filas con asterisco tienen pocos chats: no sacar conclusiones de ellas."],
     html: () => `<div class="grid g-2-1 cuerpo" style="gap:60px;align-items:start">
@@ -387,7 +387,29 @@
   });
 
   slide({
-    tag: "Análisis exploratorio", quien: 2, min: 1.2, corto: "El atajo", chico: true,
+    tag: "Análisis exploratorio", quien: 2, min: 0.7, corto: "Los anuncios y los meses", chico: true,
+    titulo: "Desde julio hay anuncios: el volumen se multiplicó por veinte y cambió qué se consulta",
+    notas: ["Hasta junio no hay ni un chat de anuncio: unos 50 por mes, casi todos terminan con una persona.", "Desde julio aparecen los anuncios y en agosto el volumen se dispara. Casi todo el entrenamiento es de agosto.", "Dentro de agosto a octubre cambia qué producto se promociona (ambos médicos contra broches) y con eso cambia la proporción de chats con una persona.", "Consecuencia: hay que reentrenar cuando cambian las campañas."],
+    html: () => {
+      const MES = { "2026-03": "Marzo", "2026-04": "Abril", "2026-05": "Mayo", "2026-06": "Junio", "2026-07": "Julio", "2026-08": "Agosto", "2026-09": "Septiembre", "2026-10": "Octubre" };
+      const filas = R.meses.map((r) => `<tr${r.mes === "2026-08" ? ' class="mejor"' : ""}><td>${MES[r.mes]}</td><td>${num(r.chats)}</td><td>${pct(r.con_anuncio)}</td><td>${pct(r.con_humano)}</td><td>${pct(r.pide_ambos)}</td><td>${pct(r.pide_broches)}</td></tr>`).join("");
+      const c = Object.fromEntries(R.composicion.map((x) => [x.mes, x]));
+      const train = R.composicion.reduce((a, x) => a + x.train, 0);
+      return `<div class="grid cuerpo" style="grid-template-columns:1.2fr .8fr;gap:52px;align-items:start;margin-top:22px">
+        <div><table class="tabla" style="font-size:24px"><thead><tr><th>2026</th><th>Chats</th><th>Con anuncio</th><th>Con humano</th><th>Piden ambos</th><th>Piden broches</th></tr></thead><tbody>${filas}</tbody></table>
+          <div class="chico" style="margin-top:10px">Mes en que el bot respondió. "Con anuncio" incluye los anuncios inferidos por la regla de texto.</div></div>
+        <div class="hoja" style="padding:26px 32px"><ul class="puntos chico">
+          <li>Hasta junio no hay anuncios: unos 50 chats por mes, casi todos con una persona.</li>
+          <li>Desde julio aparecen, y en agosto llegan a ${num(R.meses.find((r) => r.mes === "2026-08").chats)} chats.</li>
+          <li>El entrenamiento es casi todo agosto: ${num(c["2026-08"].train)} de ${num(train)} chats.</li>
+          <li>De agosto a octubre cambia qué se promociona: ambos pasa de 32 a 43 y a 35 %, y con eso la proporción con una persona (51, 60 y 49 %).</li>
+          <li>Hay que reentrenar cuando cambian las campañas.</li></ul></div>
+      </div>`;
+    },
+  });
+
+  slide({
+    tag: "Análisis exploratorio", quien: 2, min: 1.0, corto: "El atajo", chico: true,
     titulo: "Lo que más nos llamó la atención: un atajo que decidimos no usar",
     notas: ["El largo del primer mensaje del cliente predecía muy bien, pero se concentra en pocos valores exactos.", "Eso es la firma del mensaje precargado del anuncio. Cambia con cualquier retoque, hasta un signo de exclamación, y el modelo se rompería.", "Lo sacamos y medimos qué queda: las variables operativas solas quedan al nivel del azar; las comerciales sostienen todo."],
     html: () => `<div class="grid g2 cuerpo" style="gap:64px;align-items:start">
@@ -404,7 +426,7 @@
   });
 
   slide({
-    tag: "Técnica de minería", quien: 3, min: 1.2, corto: "Cuatro modelos", chico: true,
+    tag: "Técnica de minería", quien: 3, min: 1.0, corto: "Cuatro modelos", chico: true,
     titulo: "Cuatro modelos, un mismo corte temporal y una sola vara para compararlos",
     notas: ["Los cuatro son supervisados: aprenden de chats que ya tienen la respuesta conocida.", "El corte es por fecha, sin mezclar: entrenamos con lo anterior a septiembre, ajustamos en septiembre y probamos en octubre.", "La métrica principal es Average Precision: qué tan arriba pone los chats que sí terminan con una persona."],
     html: () => `<div class="grid g-2-1 cuerpo" style="gap:56px;align-items:start;grid-template-columns:1.15fr .85fr">
@@ -427,7 +449,7 @@
   });
 
   slide({
-    tag: "Técnica de minería", quien: 3, min: 1.3, corto: "Resultados y elección", chico: true,
+    tag: "Técnica de minería", quien: 3, min: 1.2, corto: "Resultados y elección", chico: true,
     titulo: "Los tres rinden parecido; el bosque puntúa mejor y el árbol explica por qué",
     notas: ["Mirar el último grupo de barras: 56 variables sin el largo de texto. Árbol 0,88, bosque 0,88, MLP 0,85: en ranking, parecidos.", "Elegimos el bosque para puntuar porque es mejor en F1, en calibración y en la finura del puntaje: el árbol da solo unos 30 valores distintos y un quinto de los chats empata, algo que no sirve para ordenar una cola.", "El árbol queda al lado para explicar: son 39 reglas de producto que la gerencia puede discutir. Es una aproximación, no es el bosque mismo.", "Combinar modelos y justificar qué aporta cada uno es parte de lo que pide la consigna."],
     html: () => {
@@ -450,7 +472,7 @@
   });
 
   slide({
-    tag: "Conclusión", quien: 4, min: 1.0, corto: "El ranking funciona", chico: true,
+    tag: "Conclusión", quien: 4, min: 0.9, corto: "El ranking funciona", chico: true,
     titulo: "El ranking funciona: los chats con puntaje alto son los que más atención reciben",
     notas: ["Izquierda: si el gerente revisa el 10, 20, 30 o 50 % de arriba, cuántos acierta y cuánto cubre. La línea punteada es el azar.", "Derecha: partimos los chats de octubre en cinco tramos por puntaje. El primero termina con una persona 9 de cada 10 veces; el último, casi nunca.", "Es el mismo orden en mensajes humanos y en fotos o documentos enviados por una persona."],
     html: () => `<div class="grid g2 cuerpo" style="gap:50px;margin-top:20px">
@@ -460,9 +482,35 @@
   });
 
   slide({
-    clase: "app", tag: "Aplicación funcional", quien: 5, min: 2.0, corto: "Probalo", chico: true,
+    tag: "Conclusión", quien: 4, min: 0.9, corto: "Más allá de los productos impulsados", chico: true,
+    titulo: "Gran parte del resultado es reconocer los productos que la empresa deriva a personas",
+    notas: ["Ambos médicos y chalecos son los productos que la empresa impulsa con anuncios y refuerza con atención humana: el 44 % de los chats de octubre, y el 94 % termina con una persona.", "El modelo separa muy bien esos chats del resto, y de ahí viene buena parte del 0,88. Dentro de ese grupo no distingue (ROC-AUC alrededor de 0,5).", "En el resto de los chats, el modelo aporta una mejora moderada: entre 1,6 y 2,5 veces mejor que el azar. Solo hay 84 chats con persona en ese grupo, así que el margen de error es grande.", "Decirlo de frente antes de que lo pregunten."],
+    html: () => {
+      const s = R.segmentos.bosque, total = s.todos.chats, t = R.top_k_resto;
+      const filas = t.map((f) => `<tr><td>${Math.round(f.fraccion * 100)} % (${num(f.chats_revisados)} chats)</td><td>${pct(f.precision)}</td><td>${dec(f.mejora_sobre_azar, 1).replace(",0", "")} veces</td></tr>`).join("");
+      return `<div class="grid cuerpo" style="grid-template-columns:1fr 1fr;gap:48px;align-items:start;margin-top:20px">
+        <div style="display:grid;gap:22px">
+          <div class="hoja" style="border-top:8px solid #cf432c;padding:22px 32px"><div class="pregunta" style="color:#cf432c">Ambos médicos o chalecos</div>
+            <div style="display:flex;gap:30px;align-items:baseline;margin-top:6px"><div class="cifra med hilo" style="font-size:84px">${pct(s.impulsados.prevalencia)}</div><div class="texto" style="font-size:26px">de ${num(s.impulsados.chats)} chats (${pct(s.impulsados.chats / total)}) terminan con una persona</div></div>
+            <p class="chico" style="margin-top:6px">Dentro de este grupo el modelo no distingue: ROC-AUC ${dec(s.impulsados.roc_auc, 2)} (0,5 es azar).</p></div>
+          <div class="hoja" style="border-top:8px solid #1d5c4e;padding:22px 32px"><div class="pregunta">Todo lo demás</div>
+            <div style="display:flex;gap:30px;align-items:baseline;margin-top:6px"><div class="cifra med verde" style="font-size:84px">${pct(s.resto.prevalencia)}</div><div class="texto" style="font-size:26px">de ${num(s.resto.chats)} chats (${pct(s.resto.chats / total)}) terminan con una persona</div></div>
+            <p class="chico" style="margin-top:6px">Acá el modelo aporta: Average Precision ${dec(s.resto.average_precision, 2)} contra ${dec(s.resto.prevalencia, 2)} del azar, ROC-AUC ${dec(s.resto.roc_auc, 2)}.</p></div>
+        </div>
+        <div>
+          <div class="pregunta" style="margin-bottom:8px">Si se revisan solo los primeros del "resto"</div>
+          <table class="tabla" style="font-size:24px"><thead><tr><th>Se revisa</th><th>Con persona</th><th>Contra el azar</th></tr></thead><tbody>${filas}</tbody></table>
+          <p class="chico" style="margin-top:12px">Solo hay ${num(s.resto.con_humano)} chats con persona en este grupo: los porcentajes tienen mucho margen de error.</p>
+          <div class="cosido" style="margin-top:18px;padding:18px 26px"><span class="texto" style="font-size:25px">El modelo reconoce con claridad los productos que se derivan a personas y, en el resto, mejora moderadamente la prioridad.</span></div>
+        </div>
+      </div>`;
+    },
+  });
+
+  slide({
+    clase: "app", tag: "Aplicación funcional", quien: 5, min: 1.8, corto: "Probalo", chico: true,
     titulo: "Probalo: armá un chat y mirá qué responden los modelos",
-    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa: por ejemplo el producto que ofrece el bot.", "El bosque da el puntaje; abajo aparecen las reglas del árbol, que explican qué señales de producto pesan.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
+    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa. Aclarar que el número es un puntaje de prioridad (0 a 100), no una probabilidad calibrada.", "El bosque da el puntaje; abajo aparecen las reglas del árbol, que explican qué señales de producto pesan.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
     html: () => `<div class="sim">
         <div>
           <div class="bloque-sim"><h5>Ejemplos</h5><div class="ejemplos" id="s-ejemplos">${EJEMPLOS.map((e, i) => `<button type="button" data-i="${i}">${esc(e.nombre)}</button>`).join("")}</div></div>
@@ -475,11 +523,11 @@
             <div class="campo"><label for="s-texto">Mensajes de texto del cliente</label><input id="s-texto" type="number" min="0" max="6" step="1"></div>
             <div class="campo"><label for="s-media">Fotos o audios del cliente</label><input id="s-media" type="number" min="0" max="3" step="1"></div>
             <div class="campo"><label for="s-bot">Mensajes del bot</label><input id="s-bot" type="number" min="1" max="5" step="1"></div>
-            <div class="campo"><label for="s-seg">Segundos hasta que responde el bot</label><input id="s-seg" type="number" min="0" max="3600" step="5"></div>
+            <div class="campo"><label for="s-seg">Duración hasta la respuesta del bot (s)</label><input id="s-seg" type="number" min="0" max="3600" step="5"></div>
           </div>
         </div>
         <div>
-          <div class="tarjetas" id="s-tarjetas"></div>
+          <h5>Puntaje de prioridad de cada modelo, de 0 a 100 (el corte está en 50)</h5><div class="tarjetas" id="s-tarjetas"></div>
           <div class="porque"><h5>Qué reglas recorre el árbol que explica</h5><ol id="s-porque"></ol></div>
         </div>
       </div>`,
@@ -487,7 +535,7 @@
   });
 
   slide({
-    tag: "Aplicación funcional", quien: 5, min: 0.5, corto: "El árbol que explica", chico: true,
+    tag: "Aplicación funcional", quien: 5, min: 0.3, corto: "El árbol que explica", chico: true,
     titulo: "El árbol al lado: 39 reglas que explican qué mira el bosque",
     notas: ["Opcional si falta tiempo. Se puede abrir cualquier rama.", "Resaltado en amarillo: el camino que recorre el chat que armaste en la aplicación.", "Es lo que habilita una conversación con la gerencia: las reglas se pueden discutir y corregir. Aclarar que es una aproximación explicable, con calidad parecida al bosque pero no idéntico."],
     html: () => `<div class="grid cuerpo" style="grid-template-columns:1.3fr .7fr;gap:50px;margin-top:20px">
@@ -500,7 +548,7 @@
   });
 
   slide({
-    tag: "Conclusión", quien: 4, min: 1.2, corto: "Conclusión", chico: true,
+    tag: "Conclusión", quien: 4, min: 1.0, corto: "Conclusión", chico: true,
     titulo: "Conclusión: sí se puede ordenar la atención, con límites que conocemos",
     notas: ["Volver a la hipótesis y responderla en una frase.", "Decir los límites antes de que los pregunten: conducta histórica, un mes de prueba, derivaciones por producto.", "Cerrar con los próximos pasos y abrir preguntas."],
     html: () => `<div class="grid g3 cuerpo" style="gap:44px;align-items:start">
@@ -510,8 +558,9 @@
           <li>El bosque puntúa los chats y un árbol de ${DATOS.complejidad.arbol.hojas} hojas explica qué señales de producto pesan.</li></ul></div>
         <div class="hoja"><div class="pregunta" style="color:#cf432c">Lo que no afirmamos</div><ul class="puntos hilo chico" style="margin-top:12px">
           <li>Que esos chats necesitaran a una persona: medimos conducta histórica.</li>
+          <li>Que el modelo ayude mucho con ambos y chalecos: ahí casi todos van a una persona.</li>
           <li>Efecto sobre las ventas: no hay etiqueta de venta.</li>
-          <li>Estabilidad futura: la prueba es de un solo mes y ya había sido inspeccionado.</li></ul></div>
+          <li>Estabilidad futura: un solo mes de prueba, y las campañas cambian.</li></ul></div>
         <div class="hoja"><div class="pregunta">Próximos pasos</div><ul class="puntos chico" style="margin-top:12px">
           <li>Validar una muestra de chats con el gerente.</li>
           <li>Confirmar con Hitelac si algunas familias se derivan por regla.</li>
@@ -705,7 +754,7 @@
     const votos = motor.votosBosque(M.bosque, x);
     const tarjeta = (id, extra, sub) => {
       const v = p[id];
-      return `<div class="modelo ${id}"><div class="nombre"><span>${NOMBRE[id]}</span><small>${sub}</small></div><div class="prob">${pct(v)}</div><div class="barra"><i style="width:${v * 100}%"></i></div><div class="veredicto ${v >= 0.5 ? "si" : "no"}">${v >= 0.5 ? "Probable: interviene una persona" : "Probable: lo resuelve el bot"}</div><div class="extra">${extra}</div></div>`;
+      return `<div class="modelo ${id}"><div class="nombre"><span>${NOMBRE[id]}</span><small>${sub}</small></div><div class="prob">${Math.round(v * 100)}</div><div class="barra"><i style="width:${v * 100}%"></i></div><div class="veredicto ${v >= 0.5 ? "si" : "no"}">${v >= 0.5 ? "Sobre el corte de 50" : "Bajo el corte de 50"}</div><div class="extra">${extra}</div></div>`;
     };
     const pos = (id) => {
       if (id === "dummy") return "No mira el chat: repite lo que vio";

@@ -91,7 +91,7 @@ def cargar_episodios():
         from episode_features_v3""")
     mart = _leer(cfg.MART, """
         select e.episode_key, e.session_key, e.anchor_at as anchor_mart, e.horizon_end,
-               o.label_status, o.human_replied_24h, o.customer_returned_24h, s.contact_key
+               o.label_status, o.human_replied_24h, o.customer_returned_24h, s.contact_key, s.origin_key
         from fact_episode e
         join fact_episode_outcome o on o.episode_key = e.episode_key
         join fact_session s on s.session_key = e.session_key""")
