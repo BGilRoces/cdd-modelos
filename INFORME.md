@@ -107,7 +107,7 @@ Se dividió el test en cinco tramos según el puntaje. En el bosque con 56 varia
 
 ## ¿Cuánto aporta el modelo más allá de los productos impulsados?
 
-Ambos médicos y chalecos son los productos que la empresa impulsa con publicidad y refuerza con atención humana (dato aportado por el grupo). Son el 44 % de los chats de octubre y el 94 % termina con una persona, de modo que reconocerlos explica buena parte del resultado. Para medir cuánto queda por encima de eso, se evaluó el bosque (56 variables) por separado en cada grupo de chats de octubre:
+Ambos médicos y chalecos son los productos que la empresa impulsa con publicidad y refuerza con atención humana (confirmado por el grupo). Son el 44 % de los chats de octubre y el 94 % termina con una persona, de modo que reconocerlos explica buena parte del resultado. Para medir cuánto queda por encima de eso, se evaluó el bosque (56 variables) por separado en cada grupo de chats de octubre:
 
 | Grupo de chats | Chats | Con persona | Average Precision | ROC-AUC |
 |---|---|---|---|---|
