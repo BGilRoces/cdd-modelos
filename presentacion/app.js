@@ -18,7 +18,7 @@
     { rol: "Análisis exploratorio", nombre: "Integrante 3" },
     { rol: "Técnica de minería", nombre: "Integrante 4" },
     { rol: "Conclusión y relato", nombre: "Integrante 5" },
-    { rol: "Aplicación funcional", nombre: "Integrante 6" },
+    { rol: "Aplicación funcional", nombre: "Bautista Gil Roces" },
   ];
   try {
     const guardado = JSON.parse(localStorage.getItem("cdd_equipo") || "null");
