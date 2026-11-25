@@ -393,6 +393,41 @@ table.tabla tr.mejor td { background: #fff3c2; font-weight: 600; }
 .ficha { font-size: 24px; font-weight: 600; padding: 6px 16px; border-radius: 4px 4px 4px 12px; background: var(--verde-claro); color: var(--verde); }
 .ficha--falta { background: var(--hilo-claro); color: #9a2f1e; }
 
+.ancla-demo { display: grid; grid-template-columns: .9fr 1.1fr; gap: 36px; height: 500px; margin-top: 30px; }
+.wa-telefono { overflow: hidden; border: 2px solid #9cafaa; border-radius: 16px; background: #efeae2; box-shadow: 0 16px 32px -22px rgba(24, 34, 45, .6); }
+.wa-cabecera { display: flex; align-items: center; gap: 15px; height: 72px; padding: 10px 22px; background: #075e54; color: #fff; }
+.wa-avatar { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: #d7eee5; color: #075e54; font: 700 29px var(--display); }
+.wa-cabecera b { display: block; font-size: 24px; }
+.wa-cabecera small { display: block; font-size: 17px; opacity: .85; }
+.wa-menu { margin-left: auto; font-size: 34px; line-height: 1; }
+.wa-conversacion { display: flex; flex-direction: column; gap: 16px; min-height: 428px; padding: 20px 24px; background: radial-gradient(circle at 20% 20%, rgba(7, 94, 84, .035) 0 2px, transparent 3px) 0 0/30px 30px, #efeae2; }
+.wa-dia { align-self: center; padding: 5px 12px; border-radius: 8px; background: #dce7e9; color: #586b70; font-size: 16px; font-weight: 700; letter-spacing: .06em; }
+.wa-burbuja { position: relative; max-width: 83%; padding: 13px 17px 24px; border-radius: 11px; font-size: 23px; line-height: 1.27; box-shadow: 0 1px 2px rgba(0, 0, 0, .12); }
+.wa-burbuja small { position: absolute; right: 10px; bottom: 5px; font-size: 15px; color: #607075; }
+.wa-saliente { align-self: flex-end; background: #d9fdd3; border-top-right-radius: 2px; }
+.wa-entrante { align-self: flex-start; background: #fff; border-top-left-radius: 2px; }
+.wa-entrante b { display: block; font-weight: 700; }
+.wa-entrante p { margin-top: 9px; }
+.wa-ancla { align-self: flex-start; margin-left: 12px; padding: 7px 13px; border-radius: 5px; background: var(--hilo); color: #fff; font-size: 18px; font-weight: 700; }
+.variables-ancla { padding: 12px 0; }
+.variables-ancla__sub { margin: 7px 0 18px; font-size: 24px; color: var(--tinta-2); }
+.variables-ancla__grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.variable-ancla { position: relative; min-height: 115px; padding: 14px 70px 14px 18px; border-left: 6px solid var(--azul); border-radius: 4px 8px 8px 4px; background: var(--papel); }
+.variable-ancla code { display: block; font-size: 20px; font-weight: 700; color: var(--azul); }
+.variable-ancla b { position: absolute; top: 13px; right: 15px; font: 700 34px var(--display); color: var(--verde); }
+.variable-ancla span { display: block; margin-top: 8px; font-size: 20px; line-height: 1.2; color: var(--tinta-2); }
+.ancla-aclaracion { margin-top: 20px; padding: 13px 22px; border-left: 8px solid var(--hilo); background: var(--hilo-claro); color: #8f321e; font-size: 25px; font-weight: 600; }
+
+.recorrido.episodio { grid-template-columns: repeat(4, 1fr); margin-top: 10px; }
+.recorrido.episodio .estacion { min-height: 170px; margin-right: 34px; padding: 15px 20px; }
+.recorrido.episodio .estacion:last-child { margin-right: 0; }
+.recorrido.episodio .estacion:not(:last-child)::after { right: -34px; width: 34px; }
+.recorrido.episodio .estacion:not(:last-child)::before { right: -40px; }
+.recorrido.episodio .estacion small { display: block; margin-bottom: 8px; color: var(--azul); font-size: 18px; font-weight: 700; letter-spacing: .06em; }
+.recorrido.episodio .estacion h4 { margin-bottom: 8px; font-size: 29px; }
+.recorrido.episodio .estacion p { font-size: 21px; line-height: 1.25; }
+.recorrido.episodio .estacion.clave small { color: #fff; }
+
 /* regla del atajo: largo -> anuncio -> destino */
 .regla { display: grid; grid-template-columns: 1.05fr auto 1.5fr auto 1.15fr; align-items: center; gap: 14px; padding: 18px 24px; background: var(--papel); border-radius: 4px 6px 6px 18px; margin-bottom: 14px; box-shadow: 0 1px 0 rgba(24, 34, 45, .1); }
 .regla__a { font-size: 25px; } .regla__a b { font-family: var(--display); font-variation-settings: "wdth" 80, "wght" 700; font-size: 50px; display: block; line-height: 1; }

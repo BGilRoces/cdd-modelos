@@ -13,8 +13,8 @@
 
   /* ---------- equipo (editable, se guarda en el navegador) ---------- */
   const EQUIPO = [
-    { rol: "Dominio y problema", nombre: "Integrante 1" },
-    { rol: "Arquitectura y datos", nombre: "Integrante 2" },
+    { rol: "Dominio y problema", nombre: "Eliel Lanzillotta" },
+    { rol: "Arquitectura y datos", nombre: "Nicolas Iglesias" },
     { rol: "Análisis exploratorio", nombre: "Integrante 3" },
     { rol: "Técnica de minería", nombre: "Integrante 4" },
     { rol: "Conclusión y relato", nombre: "Integrante 5" },
@@ -23,6 +23,12 @@
   try {
     const guardado = JSON.parse(localStorage.getItem("cdd_equipo") || "null");
     if (Array.isArray(guardado)) guardado.forEach((g, i) => { if (EQUIPO[i] && g && g.nombre) EQUIPO[i].nombre = g.nombre; });
+    if (localStorage.getItem("cdd_equipo_nombres_v1") !== "1") {
+      EQUIPO[0].nombre = "Eliel Lanzillotta";
+      EQUIPO[1].nombre = "Nicolas Iglesias";
+      localStorage.setItem("cdd_equipo", JSON.stringify(EQUIPO));
+      localStorage.setItem("cdd_equipo_nombres_v1", "1");
+    }
   } catch (e) { /* sin almacenamiento: se usan los nombres por defecto */ }
   const guardarEquipo = () => { try { localStorage.setItem("cdd_equipo", JSON.stringify(EQUIPO)); } catch (e) { /* ignorar */ } };
 
@@ -380,9 +386,9 @@
   });
 
   slide({
-    tag: "Arquitectura de la solución", quien: 1, min: 0.8, corto: "Arquitectura",
+    tag: "Arquitectura de la solución", quien: 1, min: 0.6, corto: "Arquitectura",
     titulo: "El recorrido de los datos: de los chats de WhatsApp al puntaje de prioridad",
-    notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación. Aclarar que las cuatro primeras son la preparación de los datos, hecha antes del modelado: la exportación de los chats se hizo una vez desde el sistema de la empresa (corte del 1/11) y el grupo trabaja con esa copia. Lo que corre sin internet es el modelado y la aplicación (el simulador y los tableros), que no están conectados al sistema de chats de Hitelac.", "Remarcar la regla clave: las variables usan solo lo que existe cuando el bot responde.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
+    notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación. Aclarar que las cuatro primeras son la preparación de los datos, hecha antes del modelado: la exportación de los chats se hizo una vez desde el sistema de la empresa (corte del 1/11) y el grupo trabaja con esa copia. Lo que corre sin internet es el modelado y la aplicación (el simulador y los tableros), que no están conectados al sistema de chats de Hitelac.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
     html: () => `
       <div class="fases"><span class="fase fase--previa">Preparación de los datos, hecha antes del modelado</span><span class="fase fase--modelo">Modelado y aplicación: corren sin internet</span></div>
       <div class="recorrido seis">
@@ -392,39 +398,63 @@
         <div class="estacion"><h4>Variables</h4><p>56 señales al momento en que responde el bot. Nada del futuro.</p></div>
         <div class="estacion"><h4>Modelos</h4><p>Dummy, árbol, bosque y MLP, con el mismo corte temporal.</p></div>
         <div class="estacion clave"><h4>Aplicación</h4><p>Simulador y tableros de BI. Sin vínculo con el sistema de Hitelac.</p></div>
-      </div>
-      <div class="grid" style="grid-template-columns:1.5fr 1fr;gap:30px;margin-top:26px;align-items:stretch">
-        <div class="cosido"><div class="pregunta">Un chat convertido en números (ejemplo, no es un chat real)</div>
-          <div style="display:grid;grid-template-columns:1fr auto 1.05fr;gap:8px 16px;align-items:center;margin-top:10px;font-size:24px">
-            <span class="suave">Cliente: «busco elástico…»</span><span>→</span><b>requested_elasticos = 1</b>
-            <span class="suave">Bot: ofrece elástico</span><span>→</span><b>offered_elasticos = 1</b>
-            <span class="suave">Lo pedido coincide con lo ofrecido</span><span>→</span><b>matched_elasticos = 1</b>
-          </div></div>
-        ${tile("9", "consultas SQL y 2 tableros de BI para entender qué pasó.", "tile--azul tile--chico")}
       </div>`,
   });
 
   slide({
-    tag: "Arquitectura de la solución", quien: 1, min: 0.5, corto: "Los datos",
-    titulo: `Partimos de 47 mil mensajes y llegamos a ${num(R.embudo.con_cobertura)} conversaciones con resultado confiable`,
-    notas: ["Mensajes y conversaciones son unidades distintas: de la exportación salen 35 mil mensajes elegibles, que se agrupan en 4.570 sesiones de consulta.", "Descartamos 170 conversaciones (el 4 %) cuya ventana de 24 horas no tuvo ninguna hora con gente atendiendo, sobre todo sábados y viernes a la noche. Su etiqueta \"sin persona\" no dice que no la necesitaran: no había nadie. El horario del equipo se infirió de los propios mensajes de personas.", "Un episodio es una conversación en el momento en que el bot da su primera respuesta comercial. Maduro significa que ya pasaron las 24 horas y sabemos si respondió una persona.", "Decir qué falta: ventas, el texto de los mensajes en la copia compartida y quién respondió cada chat."],
+    tag: "Feature engineering", quien: 1, min: 0.8, corto: "Del chat a las variables", chico: true,
+    titulo: "El ancla convierte un chat en variables, sin mirar lo que pasa después",
+    notas: ["Este chat es completamente ficticio. El cliente escribe presio con s, pero broches está explícito: el ejemplo muestra una consulta natural sin exponer mensajes reales.", "A las 10:02 llega la primera respuesta comercial del bot. Ese mensaje es el ancla: se congelan pedido, oferta, coincidencia, día y tiempo transcurrido. La respuesta humana posterior no puede entrar como variable porque es lo que queremos predecir.", "requested_* y offered_* son indicadores 0/1 por familia. Como pueden aparecer varias familias, es codificación multi-hot; matched_* cruza pedido y oferta. weekday transforma la fecha y requested_family_count cuenta las familias pedidas.", "Prefix es el tramo desde el primer mensaje de la sesión hasta el ancla: aquí son 120 segundos. El ejemplo supone un martes, por eso weekday vale 1 si lunes es 0."],
+    html: () => `<div class="ancla-demo">
+      <div class="wa-telefono">
+        <div class="wa-cabecera"><div class="wa-avatar">H</div><div><b>Hitelac</b><small>Hila · asistente virtual</small></div><span class="wa-menu">⋮</span></div>
+        <div class="wa-conversacion">
+          <div class="wa-dia">MARTES · CHAT FICTICIO</div>
+          <div class="wa-burbuja wa-saliente">¡Hola! ¿Tenés broches para ropa? Necesito saber el presio por mayor.<small>10:00 ✓✓</small></div>
+          <div class="wa-burbuja wa-entrante"><b>¡Hola! Soy Hila, tu asistente virtual 👋</b><p>✓ Sí, tenemos broches para ropa.</p><p>Para ayudarte con modelos y precios, contame qué tipo y cantidad necesitás.</p><small>10:02</small></div>
+          <div class="wa-ancla">ANCLA · primera respuesta comercial del bot</div>
+        </div>
+      </div>
+      <div class="variables-ancla">
+        <div class="pregunta">Variables fijadas a las 10:02</div>
+        <p class="variables-ancla__sub">Solo usamos lo que el chat mostró hasta la respuesta comercial del bot.</p>
+        <div class="variables-ancla__grid">
+          <div class="variable-ancla"><code>requested_broches</code><b>1</b><span>El cliente pidió broches</span></div>
+          <div class="variable-ancla"><code>offered_broches</code><b>1</b><span>El bot ofreció broches</span></div>
+          <div class="variable-ancla"><code>matched_broches</code><b>1</b><span>Pedido y oferta coinciden</span></div>
+          <div class="variable-ancla"><code>weekday</code><b>1</b><span>Martes, si lunes = 0</span></div>
+          <div class="variable-ancla"><code>prefix_duration_seconds</code><b>120</b><span>Del primer mensaje al ancla</span></div>
+          <div class="variable-ancla"><code>requested_family_count</code><b>1</b><span>Una familia de producto pedida</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="ancla-aclaracion">La respuesta de una persona en las 24 horas siguientes será la etiqueta del episodio; no es una variable de entrada.</div>`,
+  });
+
+  slide({
+    tag: "Arquitectura de la solución", quien: 1, min: 0.5, corto: "Los datos", chico: true,
+    titulo: `De 47 mil mensajes a ${num(R.embudo.con_cobertura)} episodios con seguimiento comparable`,
+    notas: ["Mensajes, sesiones y episodios son unidades distintas: de la exportación salen 35 mil mensajes elegibles, que se agrupan en 4.570 sesiones de consulta. Una pausa de más de 24 horas entre mensajes abre otra sesión; la sesión no tiene duración fija. Hay como máximo un episodio por sesión.", "De las 4.570 sesiones, 3.982 tienen un ancla comercial elegible. De esos episodios, 3.981 completaron el seguimiento de 24 horas; uno quedó pendiente al corte de los datos.", "El modelado actualizado excluye además 170 episodios maduros cuya ventana no tuvo horas de atención humana observada. Quedan 3.811 para comparar; ausencia de respuesta cuando no había atención no significa que el bot resolviera el caso.", "Recorrer las cuatro tarjetas: limpiar mensajes, agruparlos en una sesión, ubicar el ancla y observar las 24 horas siguientes. Las variables solo miran lo disponible hasta el ancla."],
     html: () => {
       const e = R.embudo;
-      const fila = (v, texto, pctv, color) => `<div style="background:var(--mesa);border-radius:4px;height:66px;margin:12px 0"><div style="width:${Math.max(pctv, 0)}%;height:100%;background:${color};border-radius:4px;display:flex;align-items:center;gap:16px;padding-left:18px;color:#fff;white-space:nowrap;overflow:hidden"><b style="font:700 38px var(--display);font-variant-numeric:tabular-nums">${num(v)}</b><span style="font-size:24px">${texto}</span></div></div>`;
+      const fila = (v, texto, pctv, color) => `<div style="background:var(--mesa);border-radius:4px;height:56px;margin:8px 0"><div style="width:${Math.max(pctv, 0)}%;height:100%;background:${color};border-radius:4px;display:flex;align-items:center;gap:12px;padding-left:16px;color:#fff;white-space:nowrap;overflow:hidden"><b style="font:700 34px var(--display);font-variant-numeric:tabular-nums">${num(v)}</b><span style="font-size:22px">${texto}</span></div></div>`;
       return `<div class="grid" style="grid-template-columns:1fr 1fr;gap:48px;margin-top:20px">
         <div><div class="pregunta">Mensajes</div>
           ${fila(e.mensajes_fuente, "en la exportación", 100, "#8a94a0")}
           ${fila(e.mensajes, "elegibles tras la limpieza", (e.mensajes / e.mensajes_fuente) * 100, "#2f5da8")}</div>
-        <div><div class="pregunta">Conversaciones</div>
+        <div><div class="pregunta">De sesiones a episodios</div>
           ${fila(e.sesiones, "sesiones de consulta", 100, "#8a94a0")}
-          ${fila(e.episodios, "episodios con respuesta del bot", (e.episodios / e.sesiones) * 100, "#2f5da8")}
-          ${fila(e.maduros, "con las 24 horas cumplidas", (e.maduros / e.sesiones) * 100, "#2f5da8")}
-          ${fila(e.con_cobertura, "con atención durante esas 24 horas", (e.con_cobertura / e.sesiones) * 100, "#1d5c4e")}</div>
+          ${fila(e.episodios, "con ancla comercial elegible", (e.episodios / e.sesiones) * 100, "#2f5da8")}
+          ${fila(e.maduros, "con 24 h observadas", (e.maduros / e.sesiones) * 100, "#2f5da8")}
+          ${fila(e.con_cobertura, "con atención posible en esas 24 h", (e.con_cobertura / e.sesiones) * 100, "#1d5c4e")}</div>
       </div>
-      <div class="partido" style="height:60px;font-size:28px;margin-top:22px"><div style="width:${(e.con_humano / e.con_cobertura) * 100}%;background:#cf432c">${num(e.con_humano)} terminaron con una persona</div><div style="flex:1;background:#1d5c4e">${num(e.sin_humano)} los resolvió el bot</div></div>
-      <div class="grid" style="grid-template-columns:1fr 1fr;gap:48px;margin-top:26px">
-        <div><div class="pregunta">Qué hay</div><div class="fichas"><span class="ficha">${num(e.contactos)} contactos seudonimizados</span><span class="ficha">Producto pedido y ofrecido</span><span class="ficha">Hora, día y ritmo del chat</span></div></div>
-        <div><div class="pregunta" style="color:#cf432c">Qué falta</div><div class="fichas"><span class="ficha ficha--falta">Ventas</span><span class="ficha ficha--falta">Quién respondió cada chat</span><span class="ficha ficha--falta">El texto de los mensajes</span></div></div>
+      <div class="partido" style="height:54px;font-size:25px;margin-top:14px"><div style="width:${(e.con_humano / e.con_cobertura) * 100}%;background:#cf432c">${num(e.con_humano)} con respuesta humana</div><div style="flex:1;background:#1d5c4e">${num(e.sin_humano)} sin respuesta humana</div></div>
+      <div class="pregunta" style="margin-top:18px">Cómo construimos cada episodio</div>
+      <div class="recorrido episodio">
+        <div class="estacion"><small>1 · LIMPIAR</small><h4>Mensajes elegibles</h4><p>Quitamos pruebas, contactos internos y menús del bot.</p></div>
+        <div class="estacion"><small>2 · AGRUPAR</small><h4>Sesión de consulta</h4><p>Una pausa mayor a 24 h entre mensajes abre otra sesión.</p></div>
+        <div class="estacion clave"><small>3 · ANCLA</small><h4>Primera respuesta comercial del bot</h4><p>En este instante fijamos las variables del episodio.</p></div>
+        <div class="estacion"><small>4 · OBSERVAR</small><h4>24 horas siguientes</h4><p>Registramos si respondió una persona.</p></div>
       </div>`;
     },
   });
@@ -696,10 +726,10 @@
   slide({
     clase: "equipo", tag: "Equipo y preguntas", quien: null, min: 0.3, corto: "Equipo y preguntas",
     titulo: "Quién presentó qué, y dónde está cada parte de la consigna",
-    notas: ["Cada integrante presentó su área. Editar los nombres antes de la defensa (se guardan en este navegador).", "Abrir preguntas."],
+    notas: ["Cada integrante presentó su área. Completar los nombres restantes antes de la defensa (se guardan en este navegador).", "Abrir preguntas."],
     chico: true,
     html: () => {
-      const cubre = [["Dominio y problema", "cómo viaja un chat y valor para el negocio"], ["Arquitectura de la solución", "recorrido de los datos, de la fuente al puntaje"], ["Análisis exploratorio", "qué hay, qué falta y qué llamó la atención"], ["Técnica de minería", "cuatro modelos: el bosque puntúa y el árbol explica"], ["Conclusión", "visualización, hipótesis respondida y límites"], ["Aplicación funcional", "esta misma página: los modelos corren acá"]];
+      const cubre = [["Dominio y problema", "cómo viaja un chat y valor para el negocio"], ["Arquitectura de la solución", "limpieza, variables y ancla de cada episodio"], ["Análisis exploratorio", "productos consultados, anuncios y cambios por mes"], ["Técnica de minería", "cuatro modelos: el bosque puntúa y el árbol explica"], ["Conclusión", "visualización, hipótesis respondida y límites"], ["Aplicación funcional", "esta misma página: los modelos corren acá"]];
       return `<div class="grid cuerpo" style="grid-template-columns:1.1fr .9fr;gap:70px;margin-top:30px">
         <div>${EQUIPO.map((e, i) => `<div class="rol-fila"><span class="disp" style="font-family:var(--display);font-variation-settings:'wdth' 82,'wght' 700;color:var(--tinta-3)">${i + 1}</span><span class="rol">${esc(e.rol)}</span><span class="fuerte" contenteditable="true" spellcheck="false" data-edit="${i}" role="textbox" aria-label="Nombre de ${esc(e.rol)}">${esc(e.nombre)}</span></div>`).join("")}</div>
         <div class="cosido"><div class="pregunta">Los seis entregables de la consigna</div><ul class="puntos chico" style="margin-top:14px">${cubre.map(([a, b]) => `<li><b>${a}:</b> ${b}.</li>`).join("")}</ul></div>
