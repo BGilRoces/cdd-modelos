@@ -961,6 +961,7 @@
   }
   const alternar = (el, id) => { el.hidden = !el.hidden; document.getElementById(id).classList.toggle("on", !el.hidden); };
   document.getElementById("b-timer").addEventListener("click", alternarTimer);
+  document.getElementById("b-reiniciar").addEventListener("click", reiniciarTimer);
   document.getElementById("b-notas").addEventListener("click", () => alternar(panelNotas, "b-notas"));
   document.getElementById("b-vista").addEventListener("click", () => { renderVista(); alternar(vista, "b-vista"); });
   const pantalla = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); };

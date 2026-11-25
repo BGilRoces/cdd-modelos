@@ -568,6 +568,7 @@ table.tabla tr.mejor td { background: #fff3c2; font-weight: 600; }
     <div id="slides"></div>
     <div id="controles">
       <button type="button" id="b-timer" title="Iniciar o pausar el cronómetro (T)">Iniciar cronómetro</button>
+      <button type="button" id="b-reiniciar" title="Reiniciar el cronómetro a 0:00 (R)">Reiniciar</button>
       <button type="button" id="b-notas" title="Notas del orador (N)">Notas</button>
       <button type="button" id="b-vista" title="Vista general (G)">Vista general</button>
       <button type="button" id="b-pantalla" title="Pantalla completa (F)">Pantalla completa</button>
@@ -1615,6 +1616,7 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   }
   const alternar = (el, id) => { el.hidden = !el.hidden; document.getElementById(id).classList.toggle("on", !el.hidden); };
   document.getElementById("b-timer").addEventListener("click", alternarTimer);
+  document.getElementById("b-reiniciar").addEventListener("click", reiniciarTimer);
   document.getElementById("b-notas").addEventListener("click", () => alternar(panelNotas, "b-notas"));
   document.getElementById("b-vista").addEventListener("click", () => { renderVista(); alternar(vista, "b-vista"); });
   const pantalla = () => { if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); };
