@@ -441,11 +441,8 @@ table.tabla tr.mejor td { background: #fff3c2; font-weight: 600; }
 .campo label { font-size: 21px; min-height: 0; white-space: nowrap; margin-bottom: 6px; }
 .campo select, .campo input { font-size: 25px; padding: 8px 12px; }
 .campo--ancho { grid-column: span 2; }
-.tarjetas { gap: 22px; }
-.tarjetas > * { padding-top: 6px; padding-bottom: 6px; }
 .sim > div:first-child { padding: 18px 32px 20px; }
 .bloque-sim { margin-bottom: 20px; }
-.tarjetas > * { padding-top: 18px; padding-bottom: 20px; }
 /* simulador: elementos de la izquierda más chicos y más separados */
 .sim h5 { font-size: 24px; margin-bottom: 12px; }
 .paso { width: 32px; height: 32px; font-size: 19px; }
@@ -458,41 +455,6 @@ table.tabla tr.mejor td { background: #fff3c2; font-weight: 600; }
 .campo select, .campo input { font-size: 21px; padding: 6px 10px; }
 .bloque-sim { margin-bottom: 30px; }
 .sim > div:first-child { padding: 24px 34px 28px; }
-/* simulador: el bosque protagoniza, los otros tres lo acompañan */
-.tarjetas { grid-template-columns: repeat(3, 1fr); gap: 24px; }
-.tarjetas > * { padding: 18px 24px 20px; }
-.modelo.bosque { grid-column: 1 / -1; padding: 24px 34px 28px; border-top-width: 10px; }
-.modelo.bosque .nombre { font-size: 38px; }
-.modelo.bosque .nombre small { font-size: 23px; }
-.modelo.bosque .prob { font-size: 120px; margin-top: 6px; }
-.modelo.bosque .barra { height: 28px; margin-top: 14px; }
-.modelo.bosque .veredicto { font-size: 28px; margin-top: 12px; }
-.modelo.bosque .prio { font-size: 25px; padding: 4px 16px; margin-top: 8px; }
-.modelo.bosque .extra { font-size: 22px; margin-top: 8px; }
-.modelo:not(.bosque) .nombre { flex-direction: column; align-items: flex-start; gap: 2px; }
-.modelo:not(.bosque) .prob { font-size: 64px; margin-top: 8px; }
-.modelo:not(.bosque) .veredicto { font-size: 21px; }
-.modelo.bosque { display: grid; grid-template-columns: 210px 1fr; column-gap: 34px; align-items: center; padding: 20px 34px 22px; }
-.modelo.bosque .nombre { grid-column: 1 / -1; margin-bottom: 6px; }
-.modelo.bosque .prob { grid-column: 1; grid-row: 2 / 5; font-size: 130px; margin: 0; }
-.modelo.bosque .barra { grid-column: 2; grid-row: 2; margin: 0; }
-.modelo.bosque .veredicto { grid-column: 2; grid-row: 3; margin: 10px 0 0; }
-.modelo.bosque .prio { grid-column: 2; grid-row: 4; justify-self: start; margin: 8px 0 0; }
-.modelo.bosque .extra { grid-column: 1 / -1; margin-top: 10px; min-height: 0; }
-.modelo:not(.bosque) .prob { font-size: 54px; margin-top: 4px; }
-.modelo:not(.bosque) .barra { margin-top: 6px; }
-.modelo:not(.bosque) .nombre small { font-size: 18px; }
-.tarjetas > * { padding-top: 14px; padding-bottom: 16px; }
-.modelo.bosque { padding: 20px 34px 22px; }
-.modelo .prob small { display: block; font: 500 17px/1.15 var(--texto); color: var(--tinta-3); margin-top: 6px; letter-spacing: 0; }
-.modelo.bosque .prob small { font-size: 20px; max-width: 200px; }
-.tarjetas { gap: 16px 24px; }
-.modelo:not(.bosque) .prob small { font-size: 15px; margin-top: 2px; }
-.modelo:not(.bosque) .nombre small { font-size: 16px; }
-.modelo:not(.bosque) .veredicto { font-size: 19px; margin-top: 4px; min-height: 0; }
-.modelo:not(.bosque) .extra { font-size: 16px; min-height: 0; }
-.tarjetas > * { padding-top: 12px; padding-bottom: 12px; }
-.modelo.bosque { padding-top: 18px; padding-bottom: 18px; }
 
 /* simulador: panel de resultado rediseñado */
 .resultado { display: grid; gap: 22px; }
@@ -553,6 +515,14 @@ table.tabla tr.mejor td { background: #fff3c2; font-weight: 600; }
 .res-marca { top: -22px; }
 .res-marca::after { top: 24px; }
 
+/* flechas laterales para cambiar de diapositiva */
+.flecha { position: absolute; top: 470px; z-index: 30; width: 58px; height: 58px; border-radius: 50%; border: 2px solid var(--tinta-3); background: rgba(251, 251, 248, .85); color: var(--tinta); font: 400 44px/1 var(--texto); padding: 0 0 6px; cursor: pointer; opacity: .55; transition: opacity .15s, transform .15s; }
+.flecha:hover { opacity: 1; transform: scale(1.08); }
+.flecha:disabled { opacity: .15; cursor: default; transform: none; }
+#flecha-ant { left: 22px; }
+#flecha-sig { right: 22px; }
+@media print { .flecha { display: none; } }
+
 </style>
 </head>
 <body>
@@ -565,6 +535,8 @@ table.tabla tr.mejor td { background: #fff3c2; font-weight: 600; }
       <button type="button" id="b-vista" title="Vista general (G)">Vista general</button>
       <button type="button" id="b-pantalla" title="Pantalla completa (F)">Pantalla completa</button>
     </div>
+    <button type="button" id="flecha-ant" class="flecha" aria-label="Diapositiva anterior" title="Anterior">&#8249;</button>
+    <button type="button" id="flecha-sig" class="flecha" aria-label="Diapositiva siguiente" title="Siguiente">&#8250;</button>
     <div id="cinta" aria-label="Cronómetro de 15 minutos"></div>
     <aside id="notas" hidden></aside>
     <div id="vista" hidden></div>
@@ -1431,6 +1403,8 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
     if (SLIDES[n].alEntrar) SLIDES[n].alEntrar();
     pintarPasos();
     renderNotas();
+    document.getElementById("flecha-ant").disabled = n === 0;
+    document.getElementById("flecha-sig").disabled = n === SLIDES.length - 1;
     try { history.replaceState(null, "", "#" + (n + 1)); } catch (e) { /* ignorar */ }
   }
 
@@ -1579,11 +1553,17 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   });
 
   /* ---------- teclado y escala ---------- */
+  document.getElementById("flecha-ant").addEventListener("click", () => ir(actual - 1));
+  document.getElementById("flecha-sig").addEventListener("click", () => ir(actual + 1));
   document.addEventListener("keydown", (e) => {
-    if (e.target && (e.target.isContentEditable || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName))) return;
-    const k = e.key;
-    if (k === "ArrowRight" || k === "PageDown" || k === " ") { e.preventDefault(); ir(actual + 1); }
-    else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); ir(actual - 1); }
+    const t = e.target, k = e.key;
+    const flecha = k === "ArrowRight" || k === "ArrowDown" || k === "ArrowLeft" || k === "ArrowUp";
+    const escribiendo = t && (t.isContentEditable || t.tagName === "TEXTAREA" || (t.tagName === "INPUT" && !/^(number|range|checkbox|radio|button)$/.test(t.type || "text")));
+    if (escribiendo) return;
+    if (t && /INPUT|SELECT/.test(t.tagName) && !flecha) return;
+    if (flecha && t && t.blur) t.blur();
+    if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || k === " ") { e.preventDefault(); ir(actual + 1); }
+    else if (k === "ArrowLeft" || k === "ArrowUp" || k === "PageUp") { e.preventDefault(); ir(actual - 1); }
     else if (k === "Home") ir(0);
     else if (k === "End") ir(SLIDES.length - 1);
     else if (k === "t" || k === "T") alternarTimer();

@@ -786,6 +786,8 @@
     if (SLIDES[n].alEntrar) SLIDES[n].alEntrar();
     pintarPasos();
     renderNotas();
+    document.getElementById("flecha-ant").disabled = n === 0;
+    document.getElementById("flecha-sig").disabled = n === SLIDES.length - 1;
     try { history.replaceState(null, "", "#" + (n + 1)); } catch (e) { /* ignorar */ }
   }
 
@@ -934,11 +936,17 @@
   });
 
   /* ---------- teclado y escala ---------- */
+  document.getElementById("flecha-ant").addEventListener("click", () => ir(actual - 1));
+  document.getElementById("flecha-sig").addEventListener("click", () => ir(actual + 1));
   document.addEventListener("keydown", (e) => {
-    if (e.target && (e.target.isContentEditable || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName))) return;
-    const k = e.key;
-    if (k === "ArrowRight" || k === "PageDown" || k === " ") { e.preventDefault(); ir(actual + 1); }
-    else if (k === "ArrowLeft" || k === "PageUp") { e.preventDefault(); ir(actual - 1); }
+    const t = e.target, k = e.key;
+    const flecha = k === "ArrowRight" || k === "ArrowDown" || k === "ArrowLeft" || k === "ArrowUp";
+    const escribiendo = t && (t.isContentEditable || t.tagName === "TEXTAREA" || (t.tagName === "INPUT" && !/^(number|range|checkbox|radio|button)$/.test(t.type || "text")));
+    if (escribiendo) return;
+    if (t && /INPUT|SELECT/.test(t.tagName) && !flecha) return;
+    if (flecha && t && t.blur) t.blur();
+    if (k === "ArrowRight" || k === "ArrowDown" || k === "PageDown" || k === " ") { e.preventDefault(); ir(actual + 1); }
+    else if (k === "ArrowLeft" || k === "ArrowUp" || k === "PageUp") { e.preventDefault(); ir(actual - 1); }
     else if (k === "Home") ir(0);
     else if (k === "End") ir(SLIDES.length - 1);
     else if (k === "t" || k === "T") alternarTimer();
