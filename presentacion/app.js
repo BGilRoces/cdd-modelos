@@ -390,10 +390,10 @@
   slide({
     tag: "Introducción", quien: 0, min: 0.9, corto: "Quién es Hitelac",
     titulo: "Hitelac atiende por WhatsApp: primero responde un bot y, a veces, entra una persona",
-    notas: ["Presentar a la empresa en una frase: importa telas e insumos de confección, también vende ambos médicos y chalecos, y va a sumar prendas y calzado.", "Contar el recorrido de un chat: anuncio en Meta, WhatsApp, bot con IA (que no ve fotos ni audios) y, en algunos casos, una persona.", "Cerrar con el problema: el gerente lee todos los chats para decidir cuáles atender primero."],
+    notas: ["Presentar a la empresa en una frase: importa telas e insumos de confección, también vende ambos médicos y chalecos, y va a sumar prendas y calzado.", "Contar el recorrido de un chat: anuncio en Meta, WhatsApp, bot con IA (que no ve fotos ni audios) y, en algunos casos, una persona.", "Cerrar con el problema: el gerente lee todos los chats para supervisar que se esté atendiendo correctamente."],
     html: () => {
       const productos = ["Hilos", "Cierres", "Botones", "Broches", "Elásticos", "Cintas", "Etiquetas", "Entretelas", "Telas", "Chalecos", "Ambos médicos"];
-      const pc = R.embudo.con_humano / R.embudo.maduros;
+      const pc = R.embudo.con_humano / R.embudo.con_cobertura;
       return `<div class="muestrario"><span class="muestrario__t">Importa telas e insumos de confección. Pronto suma prendas y calzado.</span>${productos.map((x) => `<span class="muestra">${x}</span>`).join("")}</div>
       <div class="recorrido" style="margin-top:28px">
         <div class="estacion" style="min-height:150px"><h4>Anuncio en Meta</h4><p>Se abre WhatsApp con un mensaje precargado.</p></div>
@@ -402,8 +402,8 @@
         <div class="estacion" style="min-height:150px"><h4>Atención personalizada</h4><p>Un vendedor asesora y acompaña.</p></div>
       </div>
       <div class="grid" style="grid-template-columns:1.7fr 1fr;gap:30px;margin-top:30px;align-items:stretch">
-        <div class="banda banda--hilo"><span class="banda__k">El problema</span><span class="banda__t">Hoy el gerente lee todos los chats para decidir cuáles atender primero.</span></div>
-        ${tile(num(R.embudo.maduros), `conversaciones reales analizadas; ${num(R.embudo.con_humano)} terminaron con una persona.`, "tile--chico")}
+        <div class="banda banda--hilo"><span class="banda__k">El problema</span><span class="banda__t">Hoy el gerente lee todos los chats para supervisar que se esté atendiendo correctamente.</span></div>
+        ${tile(num(R.embudo.con_cobertura), `conversaciones reales analizadas; ${num(R.embudo.con_humano)} terminaron con una persona.`, "tile--chico")}
       </div>`;
     },
   });
