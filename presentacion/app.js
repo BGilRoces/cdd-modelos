@@ -16,8 +16,8 @@
     { rol: "Dominio y problema", nombre: "Eliel Lanzillotta" },
     { rol: "Arquitectura y datos", nombre: "Nicolas Iglesias" },
     { rol: "Análisis exploratorio", nombre: "Felipe Godoy" },
-    { rol: "Técnica de minería", nombre: "Integrante 4" },
-    { rol: "Conclusión y relato", nombre: "Integrante 5" },
+    { rol: "Técnica de minería", nombre: "Nicolás Di Giacinti" },
+    { rol: "Conclusión y relato", nombre: "Agustin Gonzalez" },
     { rol: "Aplicación funcional", nombre: "Bautista Gil Roces" },
   ];
   try {
