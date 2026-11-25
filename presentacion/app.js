@@ -22,7 +22,7 @@
   ];
   try {
     const guardado = JSON.parse(localStorage.getItem("cdd_equipo") || "null");
-    if (Array.isArray(guardado)) guardado.forEach((g, i) => { if (EQUIPO[i] && g && g.nombre) EQUIPO[i].nombre = g.nombre; });
+    if (Array.isArray(guardado)) guardado.forEach((g, i) => { if (EQUIPO[i] && g && g.nombre && !/^Integrante [0-9]+$/.test(g.nombre)) EQUIPO[i].nombre = g.nombre; });
     if (localStorage.getItem("cdd_equipo_nombres_v1") !== "1") {
       EQUIPO[0].nombre = "Eliel Lanzillotta";
       EQUIPO[1].nombre = "Nicolas Iglesias";
