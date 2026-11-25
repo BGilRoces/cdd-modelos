@@ -327,7 +327,7 @@
   slide({
     tag: "Hipótesis y resultado", quien: 0, min: 0.9, corto: "La respuesta primero",
     titulo: "Con lo que el bot ya respondió, Hitelac puede saber qué chats van a necesitar a una persona",
-    notas: ["Conclusión primero, como pide la consigna.", "Leer los tres números y después las tres frases de abajo: qué resolvemos, para quién y qué cambia.", "Explicar 'acierto' en términos de negocio: el modelo ordena los chats por puntaje; si se atiende el 20 % de arriba, 92 de cada 100 terminan con una persona contra 49 al elegir al azar."],
+    notas: ["Conclusión primero, como pide la consigna.", "Leer los tres números y después las tres frases de abajo: qué resolvemos, para quién y qué cambia.", "Explicar 'acierto' en términos de negocio: el modelo ordena los chats por puntaje; si se atiende el 20 % de arriba, 94 de cada 100 terminan con una persona contra 50 al elegir al azar."],
     html: () => {
       const t = top20(), azar = Math.round(R.particiones.test.positivos * 100);
       const mejora = Math.round((Math.round(t.precision * 100) / azar - 1) * 100);
@@ -406,8 +406,8 @@
 
   slide({
     tag: "Arquitectura de la solución", quien: 1, min: 0.5, corto: "Los datos",
-    titulo: "Partimos de 47 mil mensajes y llegamos a 3.981 conversaciones con resultado conocido",
-    notas: ["Mensajes y conversaciones son unidades distintas: de la exportación salen 35 mil mensajes elegibles, que se agrupan en 4.570 sesiones de consulta.", "Un episodio es una conversación en el momento en que el bot da su primera respuesta comercial. Maduro significa que ya pasaron las 24 horas y sabemos si respondió una persona.", "Decir qué falta: ventas, el texto de los mensajes en la copia compartida y quién respondió cada chat."],
+    titulo: `Partimos de 47 mil mensajes y llegamos a ${num(R.embudo.con_cobertura)} conversaciones con resultado confiable`,
+    notas: ["Mensajes y conversaciones son unidades distintas: de la exportación salen 35 mil mensajes elegibles, que se agrupan en 4.570 sesiones de consulta.", "Descartamos 170 conversaciones (el 4 %) cuya ventana de 24 horas no tuvo ninguna hora con gente atendiendo, sobre todo sábados y viernes a la noche. Su etiqueta \"sin persona\" no dice que no la necesitaran: no había nadie. El horario del equipo se infirió de los propios mensajes de personas.", "Un episodio es una conversación en el momento en que el bot da su primera respuesta comercial. Maduro significa que ya pasaron las 24 horas y sabemos si respondió una persona.", "Decir qué falta: ventas, el texto de los mensajes en la copia compartida y quién respondió cada chat."],
     html: () => {
       const e = R.embudo;
       const fila = (v, texto, pctv, color) => `<div style="background:var(--mesa);border-radius:4px;height:66px;margin:12px 0"><div style="width:${Math.max(pctv, 0)}%;height:100%;background:${color};border-radius:4px;display:flex;align-items:center;gap:16px;padding-left:18px;color:#fff;white-space:nowrap;overflow:hidden"><b style="font:700 38px var(--display);font-variant-numeric:tabular-nums">${num(v)}</b><span style="font-size:24px">${texto}</span></div></div>`;
@@ -418,9 +418,10 @@
         <div><div class="pregunta">Conversaciones</div>
           ${fila(e.sesiones, "sesiones de consulta", 100, "#8a94a0")}
           ${fila(e.episodios, "episodios con respuesta del bot", (e.episodios / e.sesiones) * 100, "#2f5da8")}
-          ${fila(e.maduros, "con las 24 horas cumplidas", (e.maduros / e.sesiones) * 100, "#1d5c4e")}</div>
+          ${fila(e.maduros, "con las 24 horas cumplidas", (e.maduros / e.sesiones) * 100, "#2f5da8")}
+          ${fila(e.con_cobertura, "con atención durante esas 24 horas", (e.con_cobertura / e.sesiones) * 100, "#1d5c4e")}</div>
       </div>
-      <div class="partido" style="height:60px;font-size:28px;margin-top:22px"><div style="width:${(e.con_humano / e.maduros) * 100}%;background:#cf432c">${num(e.con_humano)} terminaron con una persona</div><div style="flex:1;background:#1d5c4e">${num(e.sin_humano)} los resolvió el bot</div></div>
+      <div class="partido" style="height:60px;font-size:28px;margin-top:22px"><div style="width:${(e.con_humano / e.con_cobertura) * 100}%;background:#cf432c">${num(e.con_humano)} terminaron con una persona</div><div style="flex:1;background:#1d5c4e">${num(e.sin_humano)} los resolvió el bot</div></div>
       <div class="grid" style="grid-template-columns:1fr 1fr;gap:48px;margin-top:26px">
         <div><div class="pregunta">Qué hay</div><div class="fichas"><span class="ficha">${num(e.contactos)} contactos seudonimizados</span><span class="ficha">Producto pedido y ofrecido</span><span class="ficha">Hora, día y ritmo del chat</span></div></div>
         <div><div class="pregunta" style="color:#cf432c">Qué falta</div><div class="fichas"><span class="ficha ficha--falta">Ventas</span><span class="ficha ficha--falta">Quién respondió cada chat</span><span class="ficha ficha--falta">El texto de los mensajes</span></div></div>
@@ -430,20 +431,20 @@
 
   slide({
     tag: "Análisis exploratorio", quien: 2, min: 0.7, corto: "Qué pide el cliente", chico: true,
-    titulo: "Según qué producto pide el cliente, la intervención humana va del 14 % al 99 %",
+    titulo: "Según qué producto pide el cliente, la intervención humana va del 15 % al 99 %",
     notas: ["Este es el hallazgo comercial más fuerte: el producto pedido marca el destino del chat.", "Broches son la mayoría de los pedidos y casi siempre los resuelve el bot; ambos médicos y chalecos son los productos que la empresa impulsa con anuncios y atiende con personas.", "Las filas con asterisco tienen pocos chats: no sacar conclusiones de ellas."],
     html: () => `<div class="grid" style="grid-template-columns:1.55fr .75fr;gap:46px;align-items:start;margin-top:12px">
         <div><div class="pregunta" style="margin-bottom:2px">De los chats que piden cada familia, ¿cuántos terminan con una persona?</div>${graficoFamilias()}</div>
         <div style="display:grid;gap:20px;padding-top:30px">
-          ${tile("14 %", "de los chats que piden broches (1.217): el bot los resuelve casi solo.", "tile--verde tile--chico")}
-          ${tile("94–99 %", "de los que piden ambos médicos o chalecos terminan con una persona.", "tile--hilo tile--chico")}
+          ${tile(pct(R.familias.find((f) => f.id === "broches").tasa), `de los chats que piden broches (${num(R.familias.find((f) => f.id === "broches").episodios)}): el bot los resuelve casi solo.`, "tile--verde tile--chico")}
+          ${tile(Math.round(R.familias.find((f) => f.id === "ambos").tasa * 100) + "–" + Math.round(R.familias.find((f) => f.id === "chalecos").tasa * 100) + " %", "de los que piden ambos médicos o chalecos terminan con una persona.", "tile--hilo tile--chico")}
           <div class="nota nota--azul"><b>Es una política</b><span>Hitelac impulsa esos productos con anuncios y los atiende con personas.</span></div>
         </div></div>`,
   });
 
   slide({
     tag: "Análisis exploratorio", quien: 2, min: 0.6, corto: "Los anuncios y los meses", chico: true,
-    titulo: "Desde julio hay anuncios: el volumen se multiplicó por veinte y cambió qué se consulta",
+    titulo: "Desde julio hay anuncios: el volumen se multiplicó por más de veinte y cambió qué se consulta",
     notas: ["Hasta junio no hay ni un chat de anuncio: unos 50 por mes, casi todos terminan con una persona.", "Desde julio aparecen los anuncios y en agosto el volumen se dispara. Casi todo el entrenamiento es de agosto.", "Dentro de agosto a octubre cambia qué producto se promociona (ambos médicos contra broches) y con eso cambia la proporción de chats con una persona.", "Consecuencia: hay que reentrenar cuando cambian las campañas."],
     html: () => {
       const c = Object.fromEntries(R.composicion.map((x) => [x.mes, x]));
@@ -505,7 +506,7 @@
   slide({
     tag: "Técnica de minería", quien: 3, min: 0.8, corto: "Resultados y elección", chico: true,
     titulo: "Los tres rinden parecido; el bosque puntúa mejor y el árbol explica por qué",
-    notas: ["Mirar las barras: con las 56 variables, árbol 0,88, bosque 0,88 y MLP 0,85. En ranking son parecidos y las líneas finas muestran el margen de error.", "Elegimos el bosque para puntuar: ordena más fino (el árbol da solo unos 30 valores distintos y un quinto de los chats empata), calibra mejor y tiene mejor F1 que el árbol (el MLP también calibra bien: no se descartó por rendir peor, sino porque no hay diferencia clara y no se puede explicar).", "El árbol queda al lado para explicar: son 39 reglas de producto que la gerencia puede discutir. Es una aproximación, no es el bosque mismo.", "Por qué no el MLP: empata en ranking (la diferencia con el bosque está dentro del margen de error) y hasta calibra y puntúa F1 algo mejor; no se descartó por rendir peor sino porque no se puede explicar. Por qué el árbol y no el bosque para explicar: el árbol se puede leer regla por regla. Combinar modelos y justificar qué aporta cada uno es parte de lo que pide la consigna."],
+    notas: ["Mirar las barras: con las 56 variables, árbol 0,87, bosque 0,89 y MLP 0,87. En ranking son parecidos y las líneas finas muestran el margen de error.", "Elegimos el bosque para puntuar: ordena más fino (el árbol da solo 16 valores distintos y casi un quinto de los chats empata), tiene el mejor error de calibración (0,155) y el mejor F1 (0,80).", "El árbol queda al lado para explicar: son 16 reglas de producto que la gerencia puede discutir. Es una aproximación, no es el bosque mismo.", "Por qué no el MLP: en ranking no hay diferencia clara con el bosque (el intervalo de la diferencia incluye el cero), no mejora en calibración ni en F1, y además no se puede explicar. Por qué el árbol y no el bosque para explicar: el árbol se puede leer regla por regla. Combinar modelos y justificar qué aporta cada uno es parte de lo que pide la consigna."],
     html: () => {
       const c = DATOS.complejidad, g = DATOS.modelos.granularidad;
       const fila3 = (k, d, mayor) => {
@@ -526,7 +527,7 @@
             <tr><td>¿Se puede leer?</td><td style="color:var(--verde);font-weight:700">Sí, ${c.arbol.hojas} reglas</td><td style="color:#9a2f1e">No</td><td style="color:#9a2f1e">No</td></tr>
           </tbody></table>
           <div style="margin-top:22px;background:var(--verde);color:#fff;border-radius:6px 6px 6px 22px;padding:16px 26px 18px"><div style="font:700 36px/1 var(--display)">Elegimos el bosque</div>
-            <div style="display:flex;gap:12px;margin-top:12px">${[["1.º", "en AP y ROC-AUC"], [num(g.bosque.distintos), `puntajes distintos (árbol: ${g.arbol.distintos})`], ["≈", "empate con los otros dos"]].map(([k, t]) => `<div style="flex:1;background:rgba(255,255,255,.16);border-radius:4px;padding:8px 14px"><div style="font:700 34px/1 var(--display)">${k}</div><div style="font-size:20px;line-height:1.15;margin-top:4px">${t}</div></div>`).join("")}</div></div>
+            <div style="display:flex;gap:12px;margin-top:12px">${[["1.º", "en AP y ROC-AUC"], [num(g.bosque.distintos), `puntajes distintos (árbol: ${g.arbol.distintos})`], ["≈", "ventaja chica: dentro del margen de error"]].map(([k, t]) => `<div style="flex:1;background:rgba(255,255,255,.16);border-radius:4px;padding:8px 14px"><div style="font:700 34px/1 var(--display)">${k}</div><div style="font-size:20px;line-height:1.15;margin-top:4px">${t}</div></div>`).join("")}</div></div>
         </div>
       </div>`;
     },
@@ -535,7 +536,7 @@
   slide({
     tag: "Técnica de minería", quien: 3, min: 1.0, corto: "Matrices de confusión", chico: true,
     titulo: "Qué aciertan y en qué se equivocan los cuatro modelos en octubre",
-    notas: ["Mostrar la tabla completa y destacar el bosque, sin ocultar a los demás.", "La accuracy no decide sola: el Dummy saca 0,49 sin saber nada. La métrica principal es Average Precision y se muestra precision, recall y F1 porque son fáciles de defender.", "Matrices: una falsa alarma es un chat que el modelo prioriza y no terminó con una persona; un falso negativo es uno con persona que quedó con menos prioridad. Importan por el uso de la cola, no por ventas.", "Con el corte de 50 los modelos marcan de más porque la proporción de chats con persona bajó de 62 % a 49 % entre septiembre y octubre."],
+    notas: ["Mostrar la tabla completa y destacar el bosque, sin ocultar a los demás.", "La accuracy no decide sola: el Dummy saca casi 0,50 sin saber nada. La métrica principal es Average Precision y se muestra precision, recall y F1 porque son fáciles de defender.", "Matrices: una falsa alarma es un chat que el modelo prioriza y no terminó con una persona; un falso negativo es uno con persona que quedó con menos prioridad. Importan por el uso de la cola, no por ventas.", "Con el corte de 50 los modelos marcan de más porque la proporción de chats con persona bajó de 62 % a 49 % entre septiembre y octubre."],
     html: () => {
       const celda = (v, max, acierto, rotulo) => {
         const a = 0.18 + 0.72 * (v / max);
@@ -562,7 +563,7 @@
   slide({
     tag: "Conclusión", quien: 4, min: 0.8, corto: "El ranking funciona", chico: true,
     titulo: "El ranking funciona: a mayor puntaje, más chats terminan con una persona",
-    notas: ["Ordenamos los chats de octubre del puntaje más alto al más bajo y los partimos en cinco grupos iguales (unos 208 chats cada uno).", "En el grupo de puntajes más altos, 92 de cada 100 terminan con una persona; en el de puntajes más bajos, 5 de cada 100. Y los primeros grupos también reciben más mensajes de una persona.", "Esto describe conducta histórica del equipo, no necesidad. El orden es consistente con la atención real: la correlación entre puntaje y mensajes humanos es 0,63 (Spearman)."],
+    notas: ["Ordenamos los chats de octubre del puntaje más alto al más bajo y los partimos en cinco grupos iguales (unos 206 chats cada uno).", "En el grupo de puntajes más altos, 94 de cada 100 terminan con una persona; en el de puntajes más bajos, 5 de cada 100. Y los primeros grupos también reciben más mensajes de una persona.", "Esto describe conducta histórica del equipo, no necesidad. El orden es consistente con la atención real: la correlación entre puntaje y mensajes humanos es 0,63 (Spearman)."],
     html: () => {
       const filas = R.tramos[GRUPO + "/bosque"].filas;
       const conPersona = filas.map((f) => f.tasa_respuesta * f.episodios);
@@ -582,7 +583,7 @@
   slide({
     tag: "Conclusión", quien: 4, min: 0.8, corto: "Más allá de los productos impulsados", chico: true,
     titulo: "Gran parte del resultado es reconocer los productos que la empresa deriva a personas",
-    notas: ["Ambos médicos y chalecos son los productos que la empresa impulsa con anuncios y refuerza con atención humana: el 44 % de los chats de octubre, y el 94 % termina con una persona.", "El modelo separa muy bien esos chats del resto, y de ahí viene buena parte del 0,88. Dentro de ese grupo no distingue (ROC-AUC alrededor de 0,5).", "En el resto de los chats, el modelo aporta una mejora moderada: entre 1,6 y 2,5 veces mejor que el azar. Solo hay 84 chats con persona en ese grupo, así que el margen de error es grande.", "Decirlo de frente antes de que lo pregunten."],
+    notas: ["Ambos médicos y chalecos son los productos que la empresa impulsa con anuncios y refuerza con atención humana: el 44 % de los chats de octubre, y el 95 % termina con una persona.", "El modelo separa muy bien esos chats del resto, y de ahí viene buena parte del 0,89. Dentro de ese grupo no distingue (ROC-AUC 0,39, incluso peor que el azar).", "En el resto de los chats, el modelo aporta una mejora moderada: entre 1,5 y 2,7 veces mejor que el azar. Solo hay 84 chats con persona en ese grupo, así que el margen de error es grande.", "Decirlo de frente antes de que lo pregunten."],
     html: () => {
       const s = R.segmentos.bosque, total = s.todos.chats, t = R.top_k_resto;
       const filas = t.map((f) => `<tr><td>${Math.round(f.fraccion * 100)} % (${num(f.chats_revisados)} chats)</td><td>${pct(f.precision)}</td><td>${dec(f.mejora_sobre_azar, 1).replace(",0", "")} veces</td></tr>`).join("");
@@ -602,6 +603,28 @@
           <div class="cosido" style="margin-top:18px;padding:18px 26px"><span class="texto" style="font-size:25px">El modelo reconoce con claridad los productos que se derivan a personas y, en el resto, mejora moderadamente la prioridad.</span></div>
         </div>
       </div>`;
+    },
+  });
+
+  slide({
+    tag: "Aplicación funcional", quien: 5, min: 0.7, corto: "Del puntaje a la prioridad", chico: true,
+    titulo: "Del puntaje a la prioridad: la cola de chats se divide en cuatro niveles",
+    notas: ["Cada chat recibe un puntaje del bosque; su lugar en la cola de chats pendientes define el nivel: Alta (los primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el resto).", "Las cifras son por nivel y no acumuladas: en octubre terminan con una persona 93, 69, 31 y 5 de cada 100 chats. En septiembre la separación fue parecida.", "Los cortes son una propuesta para validar con la gerencia y se definen por posición en la cola y no por probabilidad, porque los puntajes no están calibrados.", "El modelo ordena la cola: no decide por el operador. El prototipo es offline; la integración con el sistema de chats de Hitelac queda como trabajo aparte."],
+    html: () => {
+      const nv = Object.fromEntries(R.niveles.test.map((f) => [f.nivel, f]));
+      const sv = Object.fromEntries(R.niveles.validation.map((f) => [f.nivel, f]));
+      const orden = ["Alta", "Media", "Baja", "Base"];
+      const color = { Alta: "#cf432c", Media: "#d9822b", Baja: "#f2c230", Base: "#1d5c4e" };
+      const sub = { Alta: "los primeros 30 % de la cola", Media: "del 30 al 50 %", Baja: "del 50 al 70 %", Base: "el 30 % restante" };
+      const columnas = orden.map((n) => `<div>
+          <div style="background:${color[n]};color:${n === "Baja" ? "#18222d" : "#fff"};padding:12px 18px;border-radius:6px 6px 0 0"><div style="font:700 34px var(--display)">${n}</div><div style="font-size:21px">${sub[n]}</div></div>
+          <div class="hoja" style="border-radius:0 0 6px 20px;padding:16px 14px 18px;text-align:center"><div class="cifra med" style="font-size:76px">${Math.round(nv[n].tasa * 100)}<span style="font-size:26px;font-weight:500"> de 100</span></div><div class="chico" style="font-size:22px">terminan con una persona</div></div>
+        </div>`).join("");
+      const mitad = Math.round((nv.Alta.parte_de_los_con_persona + nv.Media.parte_de_los_con_persona) * 100);
+      return `<p class="texto" style="margin-top:20px;font-size:28px">Cada chat recibe un puntaje y, según su lugar en la cola, un nivel de prioridad. Cifras de octubre:</p>
+        <div style="display:grid;grid-template-columns:3fr 2fr 2fr 3fr;gap:14px;margin-top:20px">${columnas}</div>
+        <p class="texto fuerte" style="margin-top:22px;font-size:29px">Alta y Media son la mitad de los chats y reúnen a ${mitad} de cada 100 que terminan con una persona.</p>
+        <div class="cosido" style="margin-top:16px;padding:16px 28px"><span class="texto" style="font-size:24px">Propuesta para validar con la gerencia. Los cortes (30, 50 y 70 %) se definen por el lugar en la cola y no por probabilidad, porque los puntajes no están calibrados. En septiembre la separación fue parecida: ${orden.map((n) => Math.round(sv[n].tasa * 100)).join(", ")} de cada 100.</span></div>`;
     },
   });
 
@@ -631,30 +654,8 @@
   });
 
   slide({
-    tag: "Aplicación funcional", quien: 5, min: 0.7, corto: "Del puntaje a la prioridad", chico: true,
-    titulo: "Del puntaje a la prioridad: la cola de chats se divide en cuatro niveles",
-    notas: ["Cada chat recibe un puntaje del bosque; su lugar en la cola de chats pendientes define el nivel: Alta (los primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el resto).", "Las cifras son por nivel y no acumuladas: en octubre terminan con una persona 94, 62, 31 y 7 de cada 100 chats. En septiembre la separación fue parecida.", "Los cortes son una propuesta para validar con la gerencia y se definen por posición en la cola y no por probabilidad, porque los puntajes no están calibrados.", "El modelo ordena la cola: no decide por el operador. El prototipo es offline; la integración con el sistema de chats de Hitelac queda como trabajo aparte."],
-    html: () => {
-      const nv = Object.fromEntries(R.niveles.test.map((f) => [f.nivel, f]));
-      const sv = Object.fromEntries(R.niveles.validation.map((f) => [f.nivel, f]));
-      const orden = ["Alta", "Media", "Baja", "Base"];
-      const color = { Alta: "#cf432c", Media: "#d9822b", Baja: "#f2c230", Base: "#1d5c4e" };
-      const sub = { Alta: "los primeros 30 % de la cola", Media: "del 30 al 50 %", Baja: "del 50 al 70 %", Base: "el 30 % restante" };
-      const columnas = orden.map((n) => `<div>
-          <div style="background:${color[n]};color:${n === "Baja" ? "#18222d" : "#fff"};padding:12px 18px;border-radius:6px 6px 0 0"><div style="font:700 34px var(--display)">${n}</div><div style="font-size:21px">${sub[n]}</div></div>
-          <div class="hoja" style="border-radius:0 0 6px 20px;padding:16px 14px 18px;text-align:center"><div class="cifra med" style="font-size:76px">${Math.round(nv[n].tasa * 100)}<span style="font-size:26px;font-weight:500"> de 100</span></div><div class="chico" style="font-size:22px">terminan con una persona</div></div>
-        </div>`).join("");
-      const mitad = Math.round((nv.Alta.parte_de_los_con_persona + nv.Media.parte_de_los_con_persona) * 100);
-      return `<p class="texto" style="margin-top:20px;font-size:28px">Cada chat recibe un puntaje y, según su lugar en la cola, un nivel de prioridad. Cifras de octubre:</p>
-        <div style="display:grid;grid-template-columns:3fr 2fr 2fr 3fr;gap:14px;margin-top:20px">${columnas}</div>
-        <p class="texto fuerte" style="margin-top:22px;font-size:29px">Alta y Media son la mitad de los chats y reúnen a ${mitad} de cada 100 que terminan con una persona.</p>
-        <div class="cosido" style="margin-top:16px;padding:16px 28px"><span class="texto" style="font-size:24px">Propuesta para validar con la gerencia. Los cortes (30, 50 y 70 %) se definen por el lugar en la cola y no por probabilidad, porque los puntajes no están calibrados. En septiembre la separación fue parecida: ${orden.map((n) => Math.round(sv[n].tasa * 100)).join(", ")} de cada 100.</span></div>`;
-    },
-  });
-
-  slide({
     tag: "Aplicación funcional", quien: 5, min: 0.2, corto: "El árbol que explica", chico: true,
-    titulo: "El árbol al lado: 39 reglas que explican qué mira el bosque",
+    titulo: `El árbol al lado: ${DATOS.complejidad.arbol.hojas} reglas que explican qué mira el bosque`,
     notas: ["Opcional si falta tiempo. Se puede abrir cualquier rama.", "Resaltado en amarillo: el camino que recorre el chat que armaste en la aplicación.", "Es lo que habilita una conversación con la gerencia: las reglas se pueden discutir y corregir. Aclarar que es una aproximación explicable, con calidad parecida al bosque pero no idéntico."],
     html: () => `<div class="grid" style="grid-template-columns:1.45fr .55fr;gap:44px;margin-top:20px">
         <div class="arbol-vista" id="s-arbol"></div>

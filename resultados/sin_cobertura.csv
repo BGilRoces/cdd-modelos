@@ -1,0 +1,12 @@
+particion,dia,chats,con_persona
+test,4,7,0
+test,5,2,0
+test,6,1,0
+train,1,1,1
+train,2,1,0
+train,3,4,4
+train,4,57,5
+train,5,88,0
+train,6,2,0
+validation,4,4,0
+validation,5,3,0

@@ -131,7 +131,7 @@ def exportar_modelos(df, matriz, columnas, ajustados, mascara):
     }
 
 
-def resultados_agregados(df, matriz, salida):
+def resultados_agregados(df, matriz, salida, descartados):
     y = df.human_replied_24h
     familias = []
     for f in cfg.FAMILIAS:
@@ -190,7 +190,7 @@ def resultados_agregados(df, matriz, salida):
         "familias": familias, "largo_texto": largo, "metricas": tabla, "top_k": top, "tramos": tramos,
         "diferencias": diferencias, "aporte": aporte, "bloques": bloques, "particiones": mensual,
         "embudo": {"mensajes_fuente": 47403, "mensajes": 35294, "contactos": 3712, "sesiones": 4570,
-                   "episodios": 3982, "maduros": len(df), "con_humano": int(y.sum()), "sin_humano": int((1 - y).sum())},
+                   "episodios": 3982, "maduros": cfg.COHORTE, "sin_cobertura": int(len(descartados)), "con_cobertura": len(df), "con_humano": int(y.sum()), "sin_humano": int((1 - y).sum())},
     }
 
 
@@ -199,6 +199,7 @@ def construir(salida=cfg.SALIDA, destino=None):
     df, matriz = datos.cargar_episodios()
     datos.validar(df, matriz)
     df, matriz = datos.cohorte_madura(df, matriz)
+    df, matriz, descartados = datos.cohorte_con_cobertura(df, matriz)
     df["particion"] = particiones.asignar(df.anchor_at, df.horizon_end)
     columnas = datos.grupos_de_variables()[GRUPO]
 
@@ -213,7 +214,7 @@ def construir(salida=cfg.SALIDA, destino=None):
         "familias_ids": cfg.FAMILIAS,
         "familias_nombres": [NOMBRES_FAMILIAS[f] for f in cfg.FAMILIAS],
         "modelos": exportar_modelos(df, matriz, columnas, ajustados, mascara),
-        "resultados": resultados_agregados(df, matriz, salida),
+        "resultados": resultados_agregados(df, matriz, salida, descartados),
         "complejidad": {k.split("/")[1]: v for k, v in configuracion["complejidad"].items() if k.startswith(GRUPO)},
     }
     texto = json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")

@@ -11,13 +11,22 @@ SEMILLA = 42
 VERSION_FEATURES = "predictive_family_anchor_v3_1"
 COHORTE = 3981
 
+# La etiqueta "respondió una persona" solo es confiable si en las 24 horas hubo gente atendiendo.
+# El horario del equipo se infiere de los mensajes humanos del propio export: una celda (día, hora)
+# está activa si hubo mensajes humanos en al menos CELDA_MIN_FECHAS fechas distintas, y una fecha
+# cuenta como día de atención si tuvo al menos DIA_MIN_MENSAJES mensajes humanos.
+CELDA_MIN_FECHAS = 15
+DIA_MIN_MENSAJES = 5
+COBERTURA_MIN_HORAS = 0.0
+COHORTE_CON_COBERTURA = 3811
+
 # Argentina no tiene horario de verano desde 2009; el mart guarda UTC y hora local.
 DESFASE_LOCAL_HORAS = -3
 
 CORTE_VALIDACION = "2026-09-01"
 CORTE_TEST = "2026-10-01"
 FIN_TEST = "2026-11-01"
-PARTICIONES_ESPERADAS = {"train": 1635, "validation": 1165, "test": 1042, "purgado": 139}
+PARTICIONES_ESPERADAS = {"train": 1482, "validation": 1158, "test": 1032, "purgado": 139}
 
 OPERATIVAS = [
     "prefix_messages",

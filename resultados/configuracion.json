@@ -3,23 +3,32 @@
   "semilla": 42,
   "umbral_fijo": 0.5,
   "particiones": {
-    "train": 1635,
-    "validation": 1165,
-    "test": 1042,
+    "train": 1482,
+    "validation": 1158,
+    "test": 1032,
     "purgado": 139
   },
-  "huella_particiones": "bd0fedb2345d0fffb4d60cca9b887a91d1885a53e16dc2adcf5b3b4103f5b5a9",
+  "huella_particiones": "f6f8a2aaa5b4e4ed44e442595704ae5f9a0bda763162301e4920d178c9dcb71d",
   "prevalencia": {
-    "train": 0.5321100917431193,
-    "validation": 0.6206008583690987,
-    "test": 0.4904030710172745
+    "train": 0.5802968960863698,
+    "validation": 0.6243523316062176,
+    "test": 0.4951550387596899
   },
   "hashes_datos": {
     "research_mart_v2.sqlite": "3fb11fa15b5875a81d00b87c628fd01ca616e09de808eec450803e5ce259c68d",
     "episode_features_v3.sqlite": "c75f6cc21b124fb0f9d024265287b1cdfd870cfc6dde7d6d0dc9dad5f8572afe"
   },
+  "cobertura": {
+    "cohorte_madura": 3981,
+    "cohorte_con_cobertura": 3811,
+    "descartados": 170,
+    "descartados_con_persona": 10,
+    "celda_min_fechas": 15,
+    "dia_min_mensajes": 5,
+    "horas_minimas": 0.0
+  },
   "lideres_validation": {
-    "operativas": "bosque",
+    "operativas": "arbol",
     "completo": "bosque",
     "operativas_sin_largo": "mlp",
     "completo_sin_largo": "bosque"
@@ -27,8 +36,8 @@
   "configuraciones_elegidas": {
     "operativas/dummy": {},
     "operativas/arbol": {
-      "criterion": "gini",
-      "max_depth": "8",
+      "criterion": "entropy",
+      "max_depth": "6",
       "min_samples_leaf": "25"
     },
     "operativas/bosque": {
@@ -38,114 +47,114 @@
       "n_estimators": "300"
     },
     "operativas/mlp": {
-      "alpha": "0.0001",
+      "alpha": "0.01",
       "hidden_layer_sizes": "(64, 32)",
       "learning_rate_init": "0.01"
     },
     "completo/dummy": {},
     "completo/arbol": {
       "criterion": "entropy",
-      "max_depth": "6",
-      "min_samples_leaf": "10"
+      "max_depth": "5",
+      "min_samples_leaf": "5"
     },
     "completo/bosque": {
-      "max_depth": "10",
+      "max_depth": "None",
       "max_features": "sqrt",
-      "min_samples_leaf": "5",
+      "min_samples_leaf": "15",
       "n_estimators": "300"
     },
     "completo/mlp": {
       "alpha": "1.0",
-      "hidden_layer_sizes": "(16,)",
+      "hidden_layer_sizes": "(32,)",
       "learning_rate_init": "0.001"
     },
     "operativas_sin_largo/dummy": {},
     "operativas_sin_largo/arbol": {
       "criterion": "gini",
-      "max_depth": "8",
+      "max_depth": "10",
       "min_samples_leaf": "1"
     },
     "operativas_sin_largo/bosque": {
       "max_depth": "6",
       "max_features": "0.3",
-      "min_samples_leaf": "5",
+      "min_samples_leaf": "15",
       "n_estimators": "300"
     },
     "operativas_sin_largo/mlp": {
-      "alpha": "0.01",
-      "hidden_layer_sizes": "(64, 32)",
+      "alpha": "1.0",
+      "hidden_layer_sizes": "(32,)",
       "learning_rate_init": "0.001"
     },
     "completo_sin_largo/dummy": {},
     "completo_sin_largo/arbol": {
       "criterion": "entropy",
-      "max_depth": "8",
-      "min_samples_leaf": "25"
+      "max_depth": "5",
+      "min_samples_leaf": "50"
     },
     "completo_sin_largo/bosque": {
-      "max_depth": "None",
+      "max_depth": "6",
       "max_features": "sqrt",
-      "min_samples_leaf": "5",
+      "min_samples_leaf": "15",
       "n_estimators": "300"
     },
     "completo_sin_largo/mlp": {
       "alpha": "1.0",
-      "hidden_layer_sizes": "(64, 32)",
+      "hidden_layer_sizes": "(16,)",
       "learning_rate_init": "0.01"
     }
   },
   "complejidad": {
     "operativas/dummy": {},
     "operativas/arbol": {
-      "profundidad": 8,
-      "hojas": 40
+      "profundidad": 6,
+      "hojas": 31
     },
     "operativas/bosque": {
       "arboles": 300,
-      "hojas_totales": 28698
+      "hojas_totales": 28077
     },
     "operativas/mlp": {
       "parametros": 2817,
-      "iteraciones": 155
+      "iteraciones": 134
     },
     "completo/dummy": {},
     "completo/arbol": {
-      "profundidad": 6,
-      "hojas": 41
+      "profundidad": 5,
+      "hojas": 27
     },
     "completo/bosque": {
       "arboles": 300,
-      "hojas_totales": 18916
+      "hojas_totales": 8186
     },
     "completo/mlp": {
-      "parametros": 961,
-      "iteraciones": 300
+      "parametros": 1921,
+      "iteraciones": 327
     },
     "operativas_sin_largo/dummy": {},
     "operativas_sin_largo/arbol": {
-      "profundidad": 8,
-      "hojas": 84
+      "profundidad": 10,
+      "hojas": 222
     },
     "operativas_sin_largo/bosque": {
       "arboles": 300,
-      "hojas_totales": 8567
+      "hojas_totales": 5683
     },
     "operativas_sin_largo/mlp": {
-      "parametros": 2753,
-      "iteraciones": 309
+      "parametros": 353,
+      "iteraciones": 139
     },
     "completo_sin_largo/dummy": {},
     "completo_sin_largo/arbol": {
-      "profundidad": 8,
-      "hojas": 39
+      "profundidad": 5,
+      "hojas": 16
     },
     "completo_sin_largo/bosque": {
       "arboles": 300,
-      "hojas_totales": 21397
+      "hojas_totales": 5136
     },
     "completo_sin_largo/mlp": {
-      "parametros": 5761,
-      "iteraciones": 58
+      "parametros": 929,
+      "iteraciones": 71
     }
   },
   "presupuesto_busqueda": {

@@ -131,3 +131,42 @@ class Integridad(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class CoberturaDeAtencion(unittest.TestCase):
+    def _mensajes(self):
+        filas = []
+        for semana in range(6):
+            for dia in range(5):
+                for hora in (9, 10, 11):
+                    t = pd.Timestamp("2026-03-02") + pd.Timedelta(days=7 * semana + dia, hours=hora + 3)
+                    for k in range(2):
+                        filas.append({"session_key": f"s{semana}{dia}{hora}{k}", "event_at_utc": t.isoformat() + "Z",
+                                      "direction": "outbound", "message_type": "text", "human_author": 1})
+        filas.append({"session_key": "x", "event_at_utc": "2026-03-04T12:00:00Z",
+                      "direction": "outbound", "message_type": "text", "human_author": 0})
+        return pd.DataFrame(filas)
+
+    def test_el_horario_se_infiere_de_los_mensajes_humanos(self):
+        with mock.patch.object(cfg, "CELDA_MIN_FECHAS", 4):
+            celdas, fechas = datos.horario_del_equipo(self._mensajes())
+        self.assertEqual(celdas, {(d, h) for d in range(5) for h in (9, 10, 11)})
+        self.assertEqual(len(fechas), 30)
+
+    def test_horas_con_equipo_cuenta_solo_celdas_activas(self):
+        celdas = {(d, h) for d in range(5) for h in (9, 10, 11)}
+        fechas = set(pd.date_range("2026-03-02", periods=30))
+        ts = pd.Timestamp
+        sabado = datos.horas_con_equipo(ts("2026-03-07 10:00"), ts("2026-03-08 10:00"), celdas, fechas)
+        viernes_noche = datos.horas_con_equipo(ts("2026-03-06 19:00"), ts("2026-03-07 19:00"), celdas, fechas)
+        viernes_media = datos.horas_con_equipo(ts("2026-03-06 10:30"), ts("2026-03-07 10:30"), celdas, fechas)
+        domingo = datos.horas_con_equipo(ts("2026-03-08 15:00"), ts("2026-03-09 15:00"), celdas, fechas)
+        self.assertEqual(sabado, 0)
+        self.assertEqual(viernes_noche, 0)
+        self.assertEqual(viernes_media, 1.5)
+        self.assertEqual(domingo, 3)
+
+    def test_un_dia_sin_actividad_no_cuenta_como_atencion(self):
+        celdas = {(0, 10)}
+        horas = datos.horas_con_equipo(pd.Timestamp("2026-03-09 09:00"), pd.Timestamp("2026-03-10 09:00"), celdas, set())
+        self.assertEqual(horas, 0)

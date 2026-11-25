@@ -24,10 +24,11 @@ def _preparar():
     df, matriz = datos.cargar_episodios()
     datos.validar(df, matriz)
     df, matriz = datos.cohorte_madura(df, matriz)
+    df, matriz, descartados = datos.cohorte_con_cobertura(df, matriz)
     df["particion"] = particiones.asignar(df.anchor_at, df.horizon_end)
     particiones.verificar_conteos(df.particion)
     atencion = datos.indicadores_atencion(df, datos.cargar_mensajes())
-    return hashes, df, matriz, atencion
+    return hashes, df, matriz, atencion, descartados
 
 
 def correr(salida):
@@ -36,7 +37,7 @@ def correr(salida):
     (salida / "local").mkdir(exist_ok=True)
 
     print("Cargando y validando datos")
-    hashes, df, matriz, atencion = _preparar()
+    hashes, df, matriz, atencion, descartados = _preparar()
     y = df.human_replied_24h.to_numpy()
     mascara = {p: (df.particion == p).to_numpy() for p in PARTICIONES}
     grupos = datos.grupos_de_variables()
@@ -177,6 +178,11 @@ def correr(salida):
     _guardar_csv(evolucion, salida / "evolucion_mensual.csv")
     _guardar_csv(niveles, salida / "niveles_prioridad.csv")
     _guardar_csv(composicion.reset_index(), salida / "composicion_por_mes.csv")
+    sin_cobertura = descartados.assign(
+        particion=particiones.asignar(descartados.anchor_at, descartados.horizon_end).to_numpy(),
+        dia=descartados.anchor_at.dt.weekday,
+    ).groupby(["particion", "dia"]).human_replied_24h.agg(chats="size", con_persona="sum").reset_index()
+    _guardar_csv(sin_cobertura, salida / "sin_cobertura.csv")
 
     graficos.comparacion_ap(metricas, salida / "figuras" / "01_average_precision.png")
     graficos.curvas(y_test, scores, salida / "figuras" / "02_curvas_precision_recall.png", "pr")
@@ -207,6 +213,10 @@ def correr(salida):
         "huella_particiones": particiones.huella(df.episode_key, df.particion),
         "prevalencia": {p: float(y[mascara[p]].mean()) for p in PARTICIONES},
         "hashes_datos": hashes,
+        "cobertura": {"cohorte_madura": cfg.COHORTE, "cohorte_con_cobertura": cfg.COHORTE_CON_COBERTURA,
+                      "descartados": int(len(descartados)), "descartados_con_persona": int(descartados.human_replied_24h.sum()),
+                      "celda_min_fechas": cfg.CELDA_MIN_FECHAS, "dia_min_mensajes": cfg.DIA_MIN_MENSAJES,
+                      "horas_minimas": cfg.COBERTURA_MIN_HORAS},
         "lideres_validation": lideres,
         "configuraciones_elegidas": {f"{g}/{n}": v for (g, n), v in elegidas.items()},
         "complejidad": {f"{g}/{n}": v for (g, n), v in complejidades.items()},

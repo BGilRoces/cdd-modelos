@@ -136,6 +136,50 @@ def cohorte_madura(df, matriz):
     return df, matriz
 
 
+def horario_del_equipo(mensajes):
+    """Celdas (día, hora) y fechas con atención humana, inferidas de los mensajes salientes de personas."""
+    hum = mensajes[(mensajes.direction == "outbound") & (mensajes.human_author == 1)].copy()
+    hum["t"] = pd.to_datetime(hum.event_at_utc, utc=True).dt.tz_localize(None) + pd.Timedelta(hours=cfg.DESFASE_LOCAL_HORAS)
+    hum["fecha"] = hum.t.dt.normalize()
+    por_celda = hum.assign(dia=hum.t.dt.weekday, hora=hum.t.dt.hour).groupby(["dia", "hora"]).fecha.nunique()
+    celdas = {(int(d), int(h)) for (d, h), n in por_celda.items() if n >= cfg.CELDA_MIN_FECHAS}
+    por_fecha = hum.groupby("fecha").size()
+    fechas = set(por_fecha[por_fecha >= cfg.DIA_MIN_MENSAJES].index)
+    return celdas, fechas
+
+
+def horas_con_equipo(inicio, fin, celdas, fechas):
+    """Horas dentro de (inicio, fin] en las que el equipo estaba atendiendo."""
+    total, t = 0.0, inicio.floor("h")
+    while t < fin:
+        a, b = max(t, inicio), min(t + pd.Timedelta(hours=1), fin)
+        if b > a and (t.weekday(), t.hour) in celdas and t.normalize() in fechas:
+            total += (b - a).total_seconds() / 3600
+        t += pd.Timedelta(hours=1)
+    return total
+
+
+def cohorte_con_cobertura(df, matriz, mensajes=None):
+    """Descarta los episodios cuya ventana de 24 horas no tuvo ninguna hora de atención.
+
+    Su etiqueta 0 no dice que el chat no necesitara a una persona, sino que no había nadie.
+    """
+    if mensajes is None:
+        mensajes = cargar_mensajes()
+    celdas, fechas = horario_del_equipo(mensajes)
+    horas = pd.Series(
+        [horas_con_equipo(a, b, celdas, fechas) for a, b in zip(df.anchor_at, df.horizon_end)],
+        index=df.index,
+    )
+    marca = (horas > cfg.COBERTURA_MIN_HORAS).to_numpy()
+    descartados = df.loc[~marca].reset_index(drop=True)
+    df = df.loc[marca].reset_index(drop=True)
+    matriz = matriz.loc[marca].reset_index(drop=True)
+    if len(df) != cfg.COHORTE_CON_COBERTURA:
+        raise ValueError(f"La cohorte con cobertura tiene {len(df)} episodios, se esperaban {cfg.COHORTE_CON_COBERTURA}")
+    return df, matriz, descartados
+
+
 def cargar_mensajes():
     return _leer(cfg.MART, """
         select session_key, event_at_utc, direction, message_type, human_author
