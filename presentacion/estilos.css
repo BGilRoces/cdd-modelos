@@ -247,19 +247,21 @@ svg .rejilla { stroke: var(--mesa-linea-fuerte); stroke-width: 1.5; stroke-dasha
 .porque li b { color: var(--azul); }
 
 /* ---------- árbol explorable ---------- */
-.arbol-vista { height: 640px; overflow: auto; background: var(--papel); padding: 22px 30px; border-radius: 6px 6px 6px 22px; font-size: 24px; line-height: 1.3; }
-.arbol-vista details { margin-left: 26px; border-left: 3px solid var(--mesa-linea-fuerte); padding-left: 14px; }
-.arbol-vista > details { margin-left: 0; }
-.arbol-vista summary { cursor: pointer; padding: 4px 0; list-style: none; }
-.arbol-vista summary::-webkit-details-marker { display: none; }
-.arbol-vista summary::before { content: "+"; display: inline-block; width: 28px; font-weight: 700; color: var(--tinta-3); }
-.arbol-vista details[open] > summary::before { content: "–"; }
-.arbol-vista .rama { font-weight: 600; margin-right: 8px; }
-.arbol-vista .si { color: var(--verde); }
-.arbol-vista .no { color: var(--hilo); }
-.arbol-vista .hoja-nodo { margin-left: 26px; padding: 4px 0 4px 14px; border-left: 3px solid var(--mesa-linea-fuerte); }
-.arbol-vista .en-camino > summary, .arbol-vista .hoja-nodo.en-camino { background: #fff3c2; }
-.arbol-vista .prob-hoja { display: inline-block; font-family: var(--display); font-variation-settings: "wdth" 82, "wght" 700; min-width: 76px; text-align: center; padding: 1px 10px; border-radius: 3px; margin: 0 8px; color: #fff; }
+.arbol-svg { margin-top: 6px; }
+.arbol-svg svg { display: block; overflow: visible; }
+.arbol-svg .hoja-svg:hover rect:first-of-type { fill: #fff3c2; }
+.camino-arbol { display: flex; align-items: center; gap: 22px; margin-top: 12px; padding: 12px 22px; background: var(--papel); border-left: 10px solid #f2c230; border-radius: 4px 6px 6px 4px; box-shadow: 0 2px 0 rgba(24, 34, 45, .12); }
+.quien-arbol { flex: none; font-family: var(--display); font-variation-settings: "wdth" 88, "wght" 700; font-size: 22px; line-height: 1.1; width: 120px; }
+.pasos-arbol { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; font-size: 20px; }
+.paso-arbol { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; background: #fff3c2; border-radius: 16px; }
+.paso-arbol b { padding: 1px 12px; border-radius: 13px; color: #fff; font-size: 19px; }
+.paso-arbol b.si { background: var(--tinta); }
+.paso-arbol b.no { background: #8a94a0; }
+.flecha-arbol { font-style: normal; font-size: 26px; color: var(--tinta-3); padding: 0 2px; }
+.fin-arbol { padding: 5px 16px; border-radius: 16px; color: #fff; font-weight: 700; font-size: 21px; }
+.hint-arbol { flex: none; width: 190px; font-size: 18px; line-height: 1.2; color: var(--tinta-3); }
+.boton-arbol { flex: none; font: inherit; font-size: 19px; font-weight: 650; padding: 8px 16px; border: 2px solid var(--tinta); border-radius: 6px; background: var(--papel); color: var(--tinta); cursor: pointer; }
+.boton-arbol:hover { background: #fff3c2; }
 
 /* ---------- tablas ---------- */
 table.tabla { border-collapse: collapse; width: 100%; font-size: 26px; background: var(--papel); }

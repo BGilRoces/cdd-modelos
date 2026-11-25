@@ -254,19 +254,21 @@ svg .rejilla { stroke: var(--mesa-linea-fuerte); stroke-width: 1.5; stroke-dasha
 .porque li b { color: var(--azul); }
 
 /* ---------- árbol explorable ---------- */
-.arbol-vista { height: 640px; overflow: auto; background: var(--papel); padding: 22px 30px; border-radius: 6px 6px 6px 22px; font-size: 24px; line-height: 1.3; }
-.arbol-vista details { margin-left: 26px; border-left: 3px solid var(--mesa-linea-fuerte); padding-left: 14px; }
-.arbol-vista > details { margin-left: 0; }
-.arbol-vista summary { cursor: pointer; padding: 4px 0; list-style: none; }
-.arbol-vista summary::-webkit-details-marker { display: none; }
-.arbol-vista summary::before { content: "+"; display: inline-block; width: 28px; font-weight: 700; color: var(--tinta-3); }
-.arbol-vista details[open] > summary::before { content: "–"; }
-.arbol-vista .rama { font-weight: 600; margin-right: 8px; }
-.arbol-vista .si { color: var(--verde); }
-.arbol-vista .no { color: var(--hilo); }
-.arbol-vista .hoja-nodo { margin-left: 26px; padding: 4px 0 4px 14px; border-left: 3px solid var(--mesa-linea-fuerte); }
-.arbol-vista .en-camino > summary, .arbol-vista .hoja-nodo.en-camino { background: #fff3c2; }
-.arbol-vista .prob-hoja { display: inline-block; font-family: var(--display); font-variation-settings: "wdth" 82, "wght" 700; min-width: 76px; text-align: center; padding: 1px 10px; border-radius: 3px; margin: 0 8px; color: #fff; }
+.arbol-svg { margin-top: 6px; }
+.arbol-svg svg { display: block; overflow: visible; }
+.arbol-svg .hoja-svg:hover rect:first-of-type { fill: #fff3c2; }
+.camino-arbol { display: flex; align-items: center; gap: 22px; margin-top: 12px; padding: 12px 22px; background: var(--papel); border-left: 10px solid #f2c230; border-radius: 4px 6px 6px 4px; box-shadow: 0 2px 0 rgba(24, 34, 45, .12); }
+.quien-arbol { flex: none; font-family: var(--display); font-variation-settings: "wdth" 88, "wght" 700; font-size: 22px; line-height: 1.1; width: 120px; }
+.pasos-arbol { flex: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; font-size: 20px; }
+.paso-arbol { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 12px; background: #fff3c2; border-radius: 16px; }
+.paso-arbol b { padding: 1px 12px; border-radius: 13px; color: #fff; font-size: 19px; }
+.paso-arbol b.si { background: var(--tinta); }
+.paso-arbol b.no { background: #8a94a0; }
+.flecha-arbol { font-style: normal; font-size: 26px; color: var(--tinta-3); padding: 0 2px; }
+.fin-arbol { padding: 5px 16px; border-radius: 16px; color: #fff; font-weight: 700; font-size: 21px; }
+.hint-arbol { flex: none; width: 190px; font-size: 18px; line-height: 1.2; color: var(--tinta-3); }
+.boton-arbol { flex: none; font: inherit; font-size: 19px; font-weight: 650; padding: 8px 16px; border: 2px solid var(--tinta); border-radius: 6px; background: var(--papel); color: var(--tinta); cursor: pointer; }
+.boton-arbol:hover { background: #fff3c2; }
 
 /* ---------- tablas ---------- */
 table.tabla { border-collapse: collapse; width: 100%; font-size: 26px; background: var(--papel); }
@@ -739,11 +741,6 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   /* ---------- descripción de reglas del árbol ---------- */
   const BIN = new Set(DATOS.binarias);
   const etiqueta = (i) => DATOS.etiquetas[DATOS.columnas[i]];
-  function reglaTexto(paso) {
-    const col = DATOS.columnas[paso.variable];
-    if (BIN.has(col)) return etiqueta(paso.variable) + ": " + (paso.izquierda ? "no" : "sí");
-    return etiqueta(paso.variable) + (paso.izquierda ? " ≤ " : " > ") + num(paso.umbral, 1);
-  }
 
   /* ---------- gráficos SVG ---------- */
   const svg = (w, h, dentro) => `<svg viewBox="0 0 ${w} ${h}" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">${dentro}</svg>`;
@@ -852,27 +849,110 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   }
 
   /* ---------- árbol navegable ---------- */
-  function arbolHTML(camino) {
-    const a = M.arbol;
-    const enCamino = new Set(camino.pasos.map((p) => p.nodo));
-    enCamino.add(camino.hoja);
-    const colorProb = (p) => (p >= 0.7 ? "#cf432c" : p <= 0.3 ? "#1d5c4e" : "#8a94a0");
-    function rec(i, ramaTxt, ramaClase, profundidad) {
-      const rama = ramaTxt ? `<span class="rama ${ramaClase}">${esc(ramaTxt)}</span>` : "";
-      const marca = enCamino.has(i) ? " en-camino" : "";
-      if (a.f[i] < 0) {
-        const p = a.pn[i];
-        return `<div class="hoja-nodo${marca}">${rama}<span class="prob-hoja" style="background:${colorProb(p)}">${pct(p)}</span> ${p >= 0.5 ? "interviene una persona" : "lo resuelve el bot"} <span class="chico">(${num(a.n[i])} chats de entrenamiento)</span></div>`;
-      }
-      const col = DATOS.columnas[a.f[i]];
-      const binaria = BIN.has(col);
-      const pregunta = binaria ? esc(etiqueta(a.f[i])) + "?" : esc(etiqueta(a.f[i])) + " ≤ " + num(a.t[i], 1) + "?";
-      const abierto = profundidad < 2 || enCamino.has(i) ? " open" : "";
-      return `<details class="${marca}"${abierto}><summary>${rama}${pregunta}</summary>` +
-        rec(a.l[i], binaria ? "No" : "Sí", binaria ? "no" : "si", profundidad + 1) +
-        rec(a.r[i], binaria ? "Sí" : "No", binaria ? "si" : "no", profundidad + 1) + `</details>`;
+  /* ---------- árbol: diagrama de flujo, grosor = cantidad de chats ---------- */
+  const A = { caja: 222, alto: 56, hueco: 58, fila: 34, tope: 40, hojaX: 1402, hojaAncho: 278, pista: 100 };
+  const colorProb = (p) => (p >= 0.7 ? "#cf432c" : p <= 0.3 ? "#1d5c4e" : "#8a94a0");
+
+  // La pregunta de cada nodo, en una frase corta que se lee de corrido.
+  function preguntaCorta(col, umbral) {
+    if (col === "hour") return "¿Antes de las " + (Math.floor(umbral) + 1) + " h?";
+    if (col === "weekday") {
+      const k = Math.floor(umbral);
+      return k === 1 ? "¿Lunes o martes?" : "¿De lunes a " + DIAS[k].toLowerCase() + "?";
     }
-    return rec(0, "", "", 0);
+    if (col === "prefix_duration_seconds") return "¿El bot respondió en " + Math.floor(umbral) + " s o menos?";
+    if (col === "prefix_messages") return "¿Hasta " + Math.floor(umbral) + " mensajes antes del bot?";
+    if (col === "matched_abrojos") return "¿Pidió abrojos y el bot los ofreció?";
+    if (BIN.has(col)) return "¿" + DATOS.etiquetas[col] + "?";
+    return DATOS.etiquetas[col] + " ≤ " + num(umbral, 1) + "?";
+  }
+  function partirLineas(texto, max) {
+    const lineas = [""];
+    for (const w of texto.split(" ")) {
+      const ult = lineas[lineas.length - 1];
+      if (ult && (ult + " " + w).length > max) lineas.push(w);
+      else lineas[lineas.length - 1] = ult ? ult + " " + w : w;
+    }
+    return lineas;
+  }
+
+  let disenoArbolCache = null;
+  function disenoArbol() {
+    if (disenoArbolCache) return disenoArbolCache;
+    const a = M.arbol, nodos = {}, hojas = [];
+    (function rec(i, prof, padre, rama) {
+      const nd = { i, prof, padre, rama, n: a.n[i], hoja: a.f[i] < 0 };
+      nodos[i] = nd;
+      if (nd.hoja) { nd.y = hojas.length; nd.p = a.pn[i]; hojas.push(i); return; }
+      const col = DATOS.columnas[a.f[i]], bin = BIN.has(col);
+      const si = bin ? a.r[i] : a.l[i], no = bin ? a.l[i] : a.r[i];
+      nd.pregunta = preguntaCorta(col, a.t[i]);
+      rec(si, prof + 1, i, "Sí");
+      rec(no, prof + 1, i, "No");
+      nd.y = (nodos[si].y + nodos[no].y) / 2;
+    })(0, 0, null, null);
+    disenoArbolCache = { nodos, hojas, total: a.n[0] };
+    return disenoArbolCache;
+  }
+
+  function rutaHasta(i) {
+    const { nodos } = disenoArbol(), ruta = [];
+    for (let k = i; k !== null; k = nodos[k].padre) ruta.unshift(k);
+    return ruta;
+  }
+
+  function arbolSVG(ruta) {
+    const { nodos, hojas, total } = disenoArbol();
+    const enRuta = new Set(ruta);
+    const px = (prof) => prof * (A.caja + A.hueco);
+    const py = (nd) => A.tope + nd.y * A.fila + A.fila / 2;
+    const ancho = A.hojaX + A.hojaAncho, alto = A.tope + hojas.length * A.fila + 8;
+    let enlaces = "", activos = "", etiquetas = "", cajas = "", filas = "";
+    for (const nd of Object.values(nodos)) {
+      if (nd.padre === null) continue;
+      const pa = nodos[nd.padre];
+      const x1 = px(pa.prof) + A.caja, y1 = py(pa);
+      const x2 = nd.hoja ? A.hojaX : px(nd.prof), y2 = py(nd);
+      const d = `M${x1},${y1} C${x1 + (x2 - x1) * 0.45},${y1} ${x2 - (x2 - x1) * 0.35},${y2} ${x2},${y2}`;
+      const grosor = Math.max(3, (nd.n / total) * 34);
+      const activo = enRuta.has(nd.i);
+      const trazo = `<path d="${d}" fill="none" stroke="${activo ? "#f2c230" : "#d3d8dc"}" stroke-width="${activo ? Math.max(grosor, 9) : grosor}"/>`;
+      if (activo) activos += trazo; else enlaces += trazo;
+      const si = nd.rama === "Sí";
+      etiquetas += `<g transform="translate(${x2 - 29},${y2})"><rect x="-19" y="-13" width="38" height="26" rx="13" fill="${si ? "#18222d" : "#fbfbf8"}" stroke="${si ? "#18222d" : "#6b7885"}" stroke-width="2"/><text y="7" text-anchor="middle" font-size="19" font-weight="700" style="fill:${si ? "#fff" : "#46535f"}">${nd.rama}</text></g>`;
+    }
+    for (const nd of Object.values(nodos)) {
+      const act = enRuta.has(nd.i), y = py(nd);
+      if (nd.hoja) {
+        const c = colorProb(nd.p), p100 = Math.round(nd.p * 100);
+        filas += `<g class="hoja-svg" data-hoja="${nd.i}" transform="translate(${A.hojaX},${y})" style="cursor:pointer">
+          <title>${p100} de cada 100 terminan con una persona · ${num(nd.n)} chats de entrenamiento</title>
+          <rect x="-6" y="-16" width="${A.hojaAncho + 6}" height="32" rx="6" fill="${act ? "#fff3c2" : "transparent"}" stroke="${act ? "#f2c230" : "none"}" stroke-width="2"/>
+          <rect x="0" y="-11" width="${A.pista}" height="22" rx="4" fill="#e3e6e2"/>
+          <rect x="0" y="-11" width="${Math.max(3, nd.p * A.pista)}" height="22" rx="4" fill="${c}"/>
+          <text x="${A.pista + 58}" y="9" font-size="27" font-weight="800" class="disp" text-anchor="end" style="fill:${c}">${p100}</text>
+          <text x="${A.pista + 66}" y="8" font-size="19" style="fill:#46535f">de 100</text></g>`;
+      } else {
+        const x = px(nd.prof), lineas = partirLineas(nd.pregunta, 19), fs = lineas.length > 2 ? 17 : 20;
+        const t0 = y - ((lineas.length - 1) * (fs + 3)) / 2 + fs * 0.34;
+        cajas += `<g><rect x="${x}" y="${y - A.alto / 2}" width="${A.caja}" height="${A.alto}" rx="9" fill="${act ? "#fff3c2" : "#fbfbf8"}" stroke="${act ? "#c99a00" : "#18222d"}" stroke-width="${act ? 3.5 : 2}"/>` +
+          lineas.map((l, k) => `<text x="${x + A.caja / 2}" y="${t0 + k * (fs + 3)}" text-anchor="middle" font-size="${fs}" font-weight="650">${esc(l)}</text>`).join("") + `</g>`;
+      }
+    }
+    const cab = `<text x="0" y="22" font-size="20" style="fill:#46535f">Entran los ${num(total)} chats de entrenamiento y se reparten según las respuestas. Cuanto más grueso el camino, más chats pasan por él.</text>
+      <text x="${A.hojaX}" y="22" font-size="20" font-weight="700">Terminan con persona</text>`;
+    return `<svg viewBox="0 0 ${ancho} ${alto}" width="100%" role="img" aria-label="Árbol de decisión: cada pregunta divide los chats en dos grupos, hasta llegar a 16 hojas con el porcentaje que termina con una persona" xmlns="http://www.w3.org/2000/svg">${cab}${enlaces}${activos}${etiquetas}${cajas}${filas}</svg>`;
+  }
+
+  function arbolCamino(ruta, propio) {
+    const { nodos } = disenoArbol();
+    const hoja = nodos[ruta[ruta.length - 1]], c = colorProb(hoja.p);
+    const pasos = ruta.slice(0, -1).map((id, k) => `<span class="paso-arbol"><span>${esc(nodos[id].pregunta)}</span><b class="${nodos[ruta[k + 1]].rama === "Sí" ? "si" : "no"}">${nodos[ruta[k + 1]].rama}</b></span>`).join('<i class="flecha-arbol">›</i>');
+    const fin = `<span class="fin-arbol" style="background:${c}">${Math.round(hoja.p * 100)} de 100 terminan con una persona</span>`;
+    const mano = propio
+      ? `<span class="hint-arbol">Tocá cualquier hoja del árbol para ver su recorrido</span>`
+      : `<button type="button" id="s-volver" class="boton-arbol">Volver a mi chat</button>`;
+    return `<div class="camino-arbol"><span class="quien-arbol">${propio ? "El chat que armaste" : "Recorrido elegido"}</span><div class="pasos-arbol">${pasos}<i class="flecha-arbol">›</i>${fin}</div>${mano}</div>`;
   }
 
   /* ---------- diapositivas ---------- */
@@ -1338,14 +1418,9 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   slide({
     tag: "Aplicación funcional", quien: 5, min: 0.2, corto: "El árbol que explica", chico: true,
     titulo: `El árbol al lado: ${DATOS.complejidad.arbol.hojas} reglas que explican qué mira el bosque`,
-    notas: ["Opcional si falta tiempo. Se puede abrir cualquier rama.", "Resaltado en amarillo: el camino que recorre el chat que armaste en la aplicación.", "Es lo que habilita una conversación con la gerencia: las reglas se pueden discutir y corregir. Aclarar que es una aproximación explicable, con calidad parecida al bosque pero no idéntico."],
-    html: () => `<div class="grid" style="grid-template-columns:1.45fr .55fr;gap:44px;margin-top:20px">
-        <div class="arbol-vista" id="s-arbol"></div>
-        <div style="display:grid;gap:20px;align-content:start">
-          <div class="nota nota--verde"><b>Cómo leerlo</b><span>Cada pregunta divide los chats en dos. Rojo: casi siempre con persona. Verde: casi nunca.</span></div>
-          <div class="nota nota--azul"><b>Qué es</b><span>Rinde parecido al bosque (${dec(ap(GRUPO, "arbol"), 2)} contra ${dec(ap(GRUPO, "bosque"), 2)}) pero sirve para entender, no para puntuar.</span></div>
-        </div></div>`,
-    alEntrar: () => renderArbol(),
+    notas: ["Opcional si falta tiempo. Leer el árbol de izquierda a derecha: cada caja es una pregunta de sí o no y el camino se parte en dos. El grosor de cada camino es la cantidad de chats que pasan por él.", "En amarillo: el recorrido del chat que armaste en la aplicación, con las respuestas en la franja de abajo. Terminan en una de las 16 hojas, que dicen de cada 100 chats así cuántos terminaron con una persona (rojo: casi siempre, verde: casi nunca).", "Tocar cualquier hoja muestra el recorrido que lleva hasta ella; el botón vuelve al chat armado.", "Es lo que habilita una conversación con la gerencia: las reglas se pueden discutir y corregir. Aclarar que es una aproximación explicable: rinde parecido al bosque pero sirve para entender, no para puntuar."],
+    html: () => `<div id="s-arbol-todo"><div id="s-arbol" class="arbol-svg"></div><div id="s-arbol-camino"></div></div>`,
+    alEntrar: () => renderArbol(true),
   });
 
   slide({
@@ -1601,10 +1676,21 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
       </div>
       <div class="res-otros"><div class="res-sub">Lo que dicen los otros modelos</div>${fila("arbol", "el que explica")}${fila("mlp", "red neuronal")}${fila("dummy", "piso de comparación")}</div>`;
   }
-  function renderArbol() {
-    const x = vectorDe(sim);
-    document.getElementById("s-arbol").innerHTML = arbolHTML(motor.caminoArbol(M.arbol, x));
+  let arbolSel = null;
+  function renderArbol(reiniciar) {
+    if (reiniciar) arbolSel = null;
+    const c = motor.caminoArbol(M.arbol, vectorDe(sim));
+    const ruta = arbolSel === null ? c.pasos.map((p) => p.nodo).concat(c.hoja) : rutaHasta(arbolSel);
+    document.getElementById("s-arbol").innerHTML = arbolSVG(ruta);
+    document.getElementById("s-arbol-camino").innerHTML = arbolCamino(ruta, arbolSel === null);
   }
+  document.addEventListener("click", (e) => {
+    const t = e.target;
+    if (!t || !t.closest || !document.getElementById("s-arbol")) return;
+    const hoja = t.closest("[data-hoja]");
+    if (hoja && document.getElementById("s-arbol").contains(hoja)) { arbolSel = Number(hoja.dataset.hoja); renderArbol(); }
+    else if (t.closest("#s-volver")) renderArbol(true);
+  });
 
   /* ---------- edición de nombres ---------- */
   document.addEventListener("input", (e) => {
