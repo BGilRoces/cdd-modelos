@@ -22,7 +22,16 @@ python -m venv .venv
 .venv\Scripts\python -m modelado
 ```
 
-Tarda unos dos minutos. Antes de entrenar verifica los hashes de los dos SQLite contra sus manifiestos, valida el esquema de las 58 variables y comprueba que los conteos de las particiones coincidan con los fijados en el protocolo. Si algo no cierra, se detiene.
+Para correr solo algunos modelos (`dummy`, `arbol`, `bosque`, `mlp`):
+
+```powershell
+.venv\Scripts\python -m modelado --modelo arbol
+.venv\Scripts\python -m modelado --modelo arbol mlp
+```
+
+Busca, entrena y mide solo esos modelos con los cuatro conjuntos de variables, imprime las métricas de validation y test y las guarda en `resultados/local/parcial_<modelos>.csv`. No toca el resto de `resultados/`, que depende de los cuatro modelos. Con la misma semilla y los mismos datos, las métricas coinciden con `metricas.csv`.
+
+La corrida completa tarda unos dos minutos. Antes de entrenar verifica los hashes de los dos SQLite contra sus manifiestos, valida el esquema de las 58 variables y comprueba que los conteos de las particiones coincidan con los fijados en el protocolo. Si algo no cierra, se detiene.
 
 ## Presentación
 

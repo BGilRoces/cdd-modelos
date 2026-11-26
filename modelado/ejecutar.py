@@ -31,6 +31,45 @@ def _preparar():
     return hashes, df, matriz, atencion, descartados
 
 
+def correr_modelos(nombres, salida):
+    """Corrida parcial: busca, entrena y mide solo los modelos pedidos.
+
+    No reescribe las tablas ni las figuras de resultados/ (esas dependen de los cuatro modelos):
+    imprime las métricas y las guarda en resultados/local/.
+    """
+    (salida / "local").mkdir(parents=True, exist_ok=True)
+    print("Cargando y validando datos")
+    _, df, matriz, _, _ = _preparar()
+    y = df.human_replied_24h.to_numpy()
+    mascara = {p: (df.particion == p).to_numpy() for p in PARTICIONES}
+
+    filas = []
+    for grupo, columnas in datos.grupos_de_variables().items():
+        x = matriz[columnas]
+        for nombre in nombres:
+            print(f"Buscando {nombre} / {grupo}")
+            _, parametros = entrenamiento.buscar(
+                nombre, x[mascara["train"]], y[mascara["train"]],
+                x[mascara["validation"]], y[mascara["validation"]],
+            )
+            modelo = entrenamiento.ajustar(nombre, parametros, x[mascara["train"]], y[mascara["train"]])
+            for particion in PARTICIONES:
+                score = modelo.predict_proba(x[mascara[particion]])[:, 1]
+                filas.append({
+                    "grupo": grupo, "modelo": nombre, "particion": particion,
+                    "parametros": str({k: str(v) for k, v in parametros.items()}),
+                    **evaluacion.metricas(y[mascara[particion]], score, cfg.UMBRAL),
+                })
+    tabla = pd.DataFrame(filas)
+    destino = salida / "local" / f"parcial_{'_'.join(nombres)}.csv"
+    _guardar_csv(tabla, destino)
+
+    vista = tabla[tabla.particion != "train"][["grupo", "modelo", "particion", "average_precision", "roc_auc", "f1", "parametros"]]
+    with pd.option_context("display.width", 200, "display.max_colwidth", 80):
+        print(vista.round(4).to_string(index=False))
+    print("Listo. Métricas en", destino)
+
+
 def correr(salida):
     salida.mkdir(parents=True, exist_ok=True)
     (salida / "figuras").mkdir(exist_ok=True)
@@ -231,8 +270,16 @@ def correr(salida):
 def principal(argv=None):
     parser = argparse.ArgumentParser(prog="python -m modelado", description=__doc__)
     parser.add_argument("--salida", type=Path, default=cfg.SALIDA, help="carpeta de resultados")
+    parser.add_argument(
+        "--modelo", nargs="+", choices=list(modelos.NOMBRES), metavar="MODELO",
+        help="corre solo estos modelos (" + ", ".join(modelos.NOMBRES) + ") sin tocar resultados/; "
+             "sin esta opción corre los cuatro y regenera todo",
+    )
     args = parser.parse_args(argv)
-    correr(args.salida)
+    if args.modelo:
+        correr_modelos(list(dict.fromkeys(args.modelo)), args.salida)
+    else:
+        correr(args.salida)
     return 0
 
 

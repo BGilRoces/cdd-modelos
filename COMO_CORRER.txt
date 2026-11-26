@@ -1,0 +1,133 @@
+COMO CORRER LOS MODELOS
+=======================
+
+Todos los comandos se corren desde la carpeta cdd-modelos, en PowerShell.
+
+
+COMANDOS
+----------------------------------
+
+  Correr UN modelo:
+
+      .venv\Scripts\python -m modelado --modelo dummy
+      .venv\Scripts\python -m modelado --modelo arbol
+      .venv\Scripts\python -m modelado --modelo bosque
+      .venv\Scripts\python -m modelado --modelo mlp
+
+  Correr varios a la vez:
+
+      .venv\Scripts\python -m modelado --modelo arbol mlp
+
+  Correr TODO (los cuatro, con graficos y tablas comparativas):
+
+      .venv\Scripts\python -m modelado
+
+  Rearmar la presentacion (despues de correr todo):
+
+      .venv\Scripts\python -m modelado.presentacion
+
+  Correr los tests:
+
+      .venv\Scripts\python -m unittest discover -s tests -v
+
+
+ANTES DE CORRER POR PRIMERA VEZ
+-------------------------------
+
+  1. Python 3.12.
+  2. El repositorio CDD clonado al lado de cdd-modelos:
+
+         Ciencia de Datos\
+           cdd-modelos\
+           CDD\datasets\...
+
+     Si esta en otro lado:  $env:CDD_DATOS = "C:\ruta\a\CDD\datasets"
+
+  3. Entorno virtual (solo si no existe la carpeta .venv):
+
+         python -m venv .venv
+         .venv\Scripts\python -m pip install -r requirements.txt
+
+
+QUE PASA CUANDO CORRES UN MODELO  (--modelo bosque)
+---------------------------------------------------
+
+  1. Verifica los datos. Compara el hash de los dos SQLite con sus
+     manifiestos, valida las 58 variables y comprueba que las particiones
+     tengan los conteos del protocolo. Si algo no cierra, se detiene.
+
+  2. Arma los episodios. Se queda con los 3.811 que tienen cobertura de
+     atencion humana y los separa en:
+         train       antes del 01/09
+         validation  septiembre
+         test        octubre
+     (139 episodios que cruzan una frontera se descartan).
+
+  3. Para cada uno de los 4 conjuntos de variables
+     (operativas, completo, operativas_sin_largo, completo_sin_largo):
+
+       a. BUSQUEDA. Prueba todas las combinaciones de hiperparametros de la
+          grilla (arbol 70, bosque 18, mlp 18). Cada una es un modelo nuevo
+          entrenado SOLO con train y medido en validation con la Average
+          Precision.
+       b. ELECCION. Se queda con la combinacion de mayor Average Precision
+          en validation.
+       c. ENTRENAMIENTO FINAL. Entrena el modelo con esa combinacion, sobre
+          train.
+       d. MEDICION. Calcula las metricas en train, validation y test.
+
+  4. Imprime una tabla y guarda el detalle en:
+
+         resultados\local\parcial_<modelo>.csv
+
+  Esto NO toca el resto de resultados\. Esas tablas y graficos necesitan los
+  cuatro modelos juntos.
+
+
+QUE PASA CUANDO CORRES TODO  (sin --modelo)
+-------------------------------------------
+
+  Hace los pasos 1 a 3 con los cuatro modelos y ademas:
+
+    - Mide el test con intervalos de confianza (remuestreando contactos).
+    - Compara los modelos entre si y con/sin variables comerciales.
+    - Revisa si el ranking del modelo coincide con la atencion humana real.
+    - Genera las 11 figuras en resultados\figuras\.
+    - Escribe las tablas (metricas.csv, busqueda.csv, etc.) y
+      resultados\configuracion.json, con los hiperparametros ganadores.
+
+  Tarda unos dos minutos. Sobrescribe resultados\.
+
+
+QUE PASA CUANDO ARMAS LA PRESENTACION
+-------------------------------------
+
+  1. Lee los hiperparametros ganadores de resultados\configuracion.json.
+  2. Reentrena los cuatro modelos con ellos (sin volver a buscar).
+  3. Comprueba que la Average Precision en test coincida con metricas.csv.
+     Si no coincide, se detiene.
+  4. Exporta los modelos (nodos de los arboles, pesos del MLP) y los
+     incrusta en presentacion\presentacion.html.
+
+  El HTML no entrena nada: calcula los puntajes en el navegador con
+  presentacion\motor.js, usando los modelos ya entrenados.
+
+
+TIEMPOS APROXIMADOS
+-------------------
+
+  dummy   segundos
+  arbol   segundos
+  mlp     unos segundos a un minuto
+  bosque  el mas lento: 72 bosques de 300 arboles cada uno
+  todo    unos 2 minutos
+
+
+NOTAS
+-----
+
+  - Los resultados son reproducibles: la semilla es 42. Con los mismos datos
+    y las mismas versiones de librerias, --modelo da las mismas metricas que
+    metricas.csv.
+  - Test (octubre) no se usa para elegir nada: solo para medir el modelo ya
+    elegido.
