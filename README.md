@@ -1,6 +1,8 @@
-# Modelos de prioridad de atención — Hitelac
+# Modelos de prioridad de atención — Telar S.A
 
 Comparación de cuatro clasificadores supervisados (Dummy, árbol de decisión, random forest y MLP) para predecir si un chat va a recibir respuesta humana en las 24 horas posteriores a la primera respuesta comercial del bot. Trabajo práctico de Ciencia de Datos (UADE). Implementa el protocolo de `PROTOCOLO_MODELADO.md` del repositorio CDD.
+
+Telar S.A es el nombre usado en los materiales de presentación. Las rutas históricas del conjunto de datos conservan su nombre original para mantener la reproducibilidad del pipeline.
 
 Los resultados y la justificación del modelo elegido están en [INFORME.md](INFORME.md).
 

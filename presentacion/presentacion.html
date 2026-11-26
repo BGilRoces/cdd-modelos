@@ -1028,10 +1028,10 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   slide({
     clase: "portada", tag: "Presentación final", quien: null, min: 0.3, titulo: "",
     corto: "Portada",
-    notas: ["Saludar y presentar al grupo en diez segundos.", "Anunciar el recorrido: primero quién es Hitelac y cuál es el problema, después la respuesta, y luego cómo llegamos a ella.", "Avisar que la presentación es también la aplicación: los modelos corren dentro de esta página."],
+    notas: ["Saludar y presentar al grupo en diez segundos.", "Anunciar el recorrido: primero quién es Telar S.A y cuál es el problema, después la respuesta, y luego cómo llegamos a ella.", "Avisar que la presentación es también la aplicación: los modelos corren dentro de esta página."],
     html: () => `
       <h1 class="titulo">¿A qué chat le toca una persona primero?</h1>
-      <p class="sub">Prioridad de atención en los chats de WhatsApp de Hitelac</p>
+      <p class="sub">Prioridad de atención en los chats de WhatsApp de Telar S.A</p>
       <div class="equipo-lista">${EQUIPO.map((e, i) => `<div><b data-quien="${i}">${esc(e.nombre)}</b><span>${esc(e.rol)}</span></div>`).join("")}</div>
       <aside class="cartel">
         <div class="cartel-k">Trabajo Práctico Obligatorio</div>
@@ -1043,8 +1043,8 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   });
 
   slide({
-    tag: "Introducción", quien: 0, min: 0.9, corto: "Quién es Hitelac",
-    titulo: "Hitelac atiende por WhatsApp: primero responde un bot y, a veces, entra una persona",
+    tag: "Introducción", quien: 0, min: 0.9, corto: "Quién es Telar S.A",
+    titulo: "Telar S.A atiende por WhatsApp: primero responde un bot y, a veces, entra una persona",
     notas: ["Presentar a la empresa en una frase: importa telas e insumos de confección, también vende ambos médicos y chalecos, y va a sumar prendas y calzado.", "Contar el recorrido de un chat: anuncio en Meta, WhatsApp, bot con IA (que no ve fotos ni audios) y, en algunos casos, una persona.", "Cerrar con el problema: el gerente lee todos los chats para supervisar que se esté atendiendo correctamente."],
     html: () => {
       const productos = ["Hilos", "Cierres", "Botones", "Broches", "Elásticos", "Cintas", "Etiquetas", "Entretelas", "Telas", "Chalecos", "Ambos médicos"];
@@ -1065,7 +1065,7 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
 
   slide({
     tag: "Hipótesis y resultado", quien: 0, min: 0.9, corto: "La respuesta primero",
-    titulo: "Con lo que el bot ya respondió, Hitelac puede saber qué chats van a necesitar a una persona",
+    titulo: "Con lo que el bot ya respondió, Telar S.A puede saber qué chats van a necesitar a una persona",
     notas: ["Conclusión primero, como pide la consigna.", "Leer los tres números y después las tres frases de abajo: qué resolvemos, para quién y qué cambia.", "Explicar 'acierto' en términos de negocio: el modelo ordena los chats por puntaje; si se atiende el 20 % de arriba, 94 de cada 100 terminan con una persona contra 50 al elegir al azar."],
     html: () => {
       const t = top20(), azar = Math.round(R.particiones.test.positivos * 100);
@@ -1085,7 +1085,7 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
         </div>
         <div class="trio" style="margin-top:38px">
           <div><b>Qué resolvemos</b><span>Anticipar si un chat termina con una persona en las próximas 24 horas.</span></div>
-          <div><b>Para quién</b><span>La gerencia comercial y técnica de Hitelac.</span></div>
+          <div><b>Para quién</b><span>La gerencia comercial y técnica de Telar S.A.</span></div>
           <div><b>Qué cambia</b><span>Se empieza por los chats que más probablemente la necesitan.</span></div>
         </div>
         <p class="chico" style="margin-top:24px">Probado con los chats de octubre de 2026, que el modelo no vio al entrenarse ni al ajustarse.</p>`;
@@ -1121,7 +1121,7 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   slide({
     tag: "Arquitectura de la solución", quien: 1, min: 0.6, corto: "Arquitectura",
     titulo: "El recorrido de los datos: de los chats de WhatsApp al puntaje de prioridad",
-    notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación. Aclarar que las cuatro primeras son la preparación de los datos, hecha antes del modelado: la exportación de los chats se hizo una vez desde el sistema de la empresa (corte del 1/11) y el grupo trabaja con esa copia. Lo que corre sin internet es el modelado y la aplicación (el simulador y los tableros), que no están conectados al sistema de chats de Hitelac.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
+    notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación. Aclarar que las cuatro primeras son la preparación de los datos, hecha antes del modelado: la exportación de los chats se hizo una vez desde el sistema de la empresa (corte del 1/11) y el grupo trabaja con esa copia. Lo que corre sin internet es el modelado y la aplicación (el simulador y los tableros), que no están conectados al sistema de chats de Telar S.A.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
     html: () => `
       <div class="fases"><span class="fase fase--previa">Preparación de los datos, hecha antes del modelado</span><span class="fase fase--modelo">Modelado y aplicación: corren sin internet</span></div>
       <div class="recorrido seis">
@@ -1130,21 +1130,21 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
         <div class="estacion"><h4>Data Mart</h4><p>Base SQLite con mensajes, sesiones y episodios.</p></div>
         <div class="estacion"><h4>Variables</h4><p>56 señales al momento en que responde el bot. Nada del futuro.</p></div>
         <div class="estacion"><h4>Modelos</h4><p>Dummy, árbol, bosque y MLP, con el mismo corte temporal.</p></div>
-        <div class="estacion clave"><h4>Aplicación</h4><p>Simulador y tableros de BI. Sin vínculo con el sistema de Hitelac.</p></div>
+        <div class="estacion clave"><h4>Aplicación</h4><p>Simulador y tableros de BI. Sin vínculo con el sistema de Telar S.A.</p></div>
       </div>`,
   });
 
   slide({
     tag: "Feature engineering", quien: 1, min: 0.8, corto: "Del chat a las variables", chico: true,
     titulo: "El ancla convierte un chat en variables, sin mirar lo que pasa después",
-    notas: ["Este chat es completamente ficticio. El cliente escribe presio con s, pero broches está explícito: el ejemplo muestra una consulta natural sin exponer mensajes reales.", "A las 10:02 llega la primera respuesta comercial del bot. Ese mensaje es el ancla: se congelan pedido, oferta, coincidencia, día y tiempo transcurrido. La respuesta humana posterior no puede entrar como variable porque es lo que queremos predecir.", "requested_* y offered_* son indicadores 0/1 por familia. Como pueden aparecer varias familias, es codificación multi-hot; matched_* cruza pedido y oferta. weekday transforma la fecha y requested_family_count cuenta las familias pedidas.", "Prefix es el tramo desde el primer mensaje de la sesión hasta el ancla: aquí son 120 segundos. El ejemplo supone un martes, por eso weekday vale 1 si lunes es 0."],
+    notas: ["Este chat es completamente ficticio. El cliente pregunta por ambos médicos y por el precio mayorista: el ejemplo muestra una consulta natural sin exponer mensajes reales. En las variables, ambos es el identificador de esa familia de producto.", "A las 10:02 llega la primera respuesta comercial del bot. Ese mensaje es el ancla: se congelan pedido, oferta, coincidencia, día y tiempo transcurrido. La respuesta humana posterior no puede entrar como variable porque es lo que queremos predecir.", "requested_* y offered_* son indicadores 0/1 por familia. Como pueden aparecer varias familias, es codificación multi-hot; matched_* cruza pedido y oferta. weekday transforma la fecha y requested_family_count cuenta las familias pedidas.", "Prefix es el tramo desde el primer mensaje de la sesión hasta el ancla: aquí son 120 segundos. El ejemplo supone un martes, por eso weekday vale 1 si lunes es 0."],
     html: () => `<div class="ancla-demo">
       <div class="wa-telefono">
-        <div class="wa-cabecera"><div class="wa-avatar">H</div><div><b>Hitelac</b><small>Hila · asistente virtual</small></div><span class="wa-menu">⋮</span></div>
+        <div class="wa-cabecera"><div class="wa-avatar">T</div><div><b>Telar S.A</b><small>Hila · asistente virtual</small></div><span class="wa-menu">⋮</span></div>
         <div class="wa-conversacion">
           <div class="wa-dia">MARTES · CHAT FICTICIO</div>
-          <div class="wa-burbuja wa-saliente">¡Hola! ¿Tenés broches para ropa? Necesito saber el presio por mayor.<small>10:00 ✓✓</small></div>
-          <div class="wa-burbuja wa-entrante"><b>¡Hola! Soy Hila, tu asistente virtual 👋</b><p>✓ Sí, tenemos broches para ropa.</p><p>Para ayudarte con modelos y precios, contame qué tipo y cantidad necesitás.</p><small>10:02</small></div>
+          <div class="wa-burbuja wa-saliente">¡Hola! ¿Tenés ambos médicos? Quisiera saber el precio por mayor.<small>10:00 ✓✓</small></div>
+          <div class="wa-burbuja wa-entrante"><b>¡Hola! Soy Hila, tu asistente virtual 👋</b><p>✓ Sí, tenemos ambos médicos.</p><p>Para pasarte opciones y precios, contame qué talle y cantidad necesitás.</p><small>10:02</small></div>
           <div class="wa-ancla">ANCLA · primera respuesta comercial del bot</div>
         </div>
       </div>
@@ -1152,9 +1152,9 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
         <div class="pregunta">Variables fijadas a las 10:02</div>
         <p class="variables-ancla__sub">Solo usamos lo que el chat mostró hasta la respuesta comercial del bot.</p>
         <div class="variables-ancla__grid">
-          <div class="variable-ancla"><code>requested_broches</code><b>1</b><span>El cliente pidió broches</span></div>
-          <div class="variable-ancla"><code>offered_broches</code><b>1</b><span>El bot ofreció broches</span></div>
-          <div class="variable-ancla"><code>matched_broches</code><b>1</b><span>Pedido y oferta coinciden</span></div>
+          <div class="variable-ancla"><code>requested_ambos</code><b>1</b><span>El cliente pidió ambos médicos</span></div>
+          <div class="variable-ancla"><code>offered_ambos</code><b>1</b><span>El bot ofreció ambos médicos</span></div>
+          <div class="variable-ancla"><code>matched_ambos</code><b>1</b><span>Pedido y oferta coinciden</span></div>
           <div class="variable-ancla"><code>weekday</code><b>1</b><span>Martes, si lunes = 0</span></div>
           <div class="variable-ancla"><code>prefix_duration_seconds</code><b>120</b><span>Del primer mensaje al ancla</span></div>
           <div class="variable-ancla"><code>requested_family_count</code><b>1</b><span>Una familia de producto pedida</span></div>
@@ -1201,7 +1201,7 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
         <div style="display:grid;gap:20px;padding-top:30px">
           ${tile(pct(R.familias.find((f) => f.id === "broches").tasa), `de los chats que piden broches (${num(R.familias.find((f) => f.id === "broches").episodios)}): el bot los resuelve casi solo.`, "tile--verde tile--chico")}
           ${tile(Math.round(R.familias.find((f) => f.id === "ambos").tasa * 100) + "–" + Math.round(R.familias.find((f) => f.id === "chalecos").tasa * 100) + " %", "de los que piden ambos médicos o chalecos terminan con una persona.", "tile--hilo tile--chico")}
-          <div class="nota nota--azul"><b>Es una política</b><span>Hitelac impulsa esos productos con anuncios y los atiende con personas.</span></div>
+          <div class="nota nota--azul"><b>Es una política</b><span>Telar S.A impulsa esos productos con anuncios y los atiende con personas.</span></div>
         </div></div>`,
   });
 
@@ -1372,7 +1372,7 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
   slide({
     tag: "Aplicación funcional", quien: 5, min: 0.7, corto: "Del puntaje a la prioridad", chico: true,
     titulo: "Del puntaje a la prioridad: la cola de chats se divide en cuatro niveles",
-    notas: ["Cada chat recibe un puntaje del bosque; su lugar en la cola de chats pendientes define el nivel: Alta (los primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el resto).", "Las cifras son por nivel y no acumuladas: en octubre terminan con una persona 93, 69, 31 y 5 de cada 100 chats. En septiembre la separación fue parecida.", "Los cortes son una propuesta para validar con la gerencia y se definen por posición en la cola y no por probabilidad, porque los puntajes no están calibrados.", "El modelo ordena la cola: no decide por el operador. El prototipo es offline; la integración con el sistema de chats de Hitelac queda como trabajo aparte."],
+    notas: ["Cada chat recibe un puntaje del bosque; su lugar en la cola de chats pendientes define el nivel: Alta (los primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el resto).", "Las cifras son por nivel y no acumuladas: en octubre terminan con una persona 93, 69, 31 y 5 de cada 100 chats. En septiembre la separación fue parecida.", "Los cortes son una propuesta para validar con la gerencia y se definen por posición en la cola y no por probabilidad, porque los puntajes no están calibrados.", "El modelo ordena la cola: no decide por el operador. El prototipo es offline; la integración con el sistema de chats de Telar S.A queda como trabajo aparte."],
     html: () => {
       const nv = Object.fromEntries(R.niveles.test.map((f) => [f.nivel, f]));
       const sv = Object.fromEntries(R.niveles.validation.map((f) => [f.nivel, f]));
@@ -1443,7 +1443,7 @@ const DATOS={"version":"predictive_family_anchor_v3_1","columnas":["prefix_messa
           <div class="col__l">Estabilidad: un solo mes de prueba y campañas que cambian</div></div>
         <div class="col col--azul"><div class="col__h">Próximos pasos</div>
           <div class="col__l">Validar una muestra con el gerente</div>
-          <div class="col__l">Confirmar con Hitelac las derivaciones por producto</div>
+          <div class="col__l">Confirmar con Telar S.A las derivaciones por producto</div>
           <div class="col__l">Recalibrar y fijar los niveles con el equipo</div>
           <div class="col__l">Piloto con una etiqueta de venta</div></div>
       </div>

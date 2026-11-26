@@ -1,6 +1,6 @@
-# Resultados de la comparación de modelos
+# Resultados de la comparación de modelos — Telar S.A
 
-Corrida del 24/11/2026 sobre los 3.811 episodios maduros con cobertura de atención del snapshot del 01/11. Todas las cifras salen de `resultados/` y se reproducen con `python -m modelado`.
+Corrida del 24/11/2026 sobre los 3.811 episodios maduros con cobertura de atención del snapshot del 01/11 del caso presentado como Telar S.A. Todas las cifras salen de `resultados/` y se reproducen con `python -m modelado`.
 
 ## Resumen
 
