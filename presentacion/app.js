@@ -465,24 +465,30 @@
 
   slide({
     tag: "Arquitectura de la solución", quien: 1, min: 0.6, corto: "Arquitectura",
-    titulo: "El recorrido de los datos: de los chats de WhatsApp al puntaje de prioridad",
-    notas: ["Recorrer el diagrama de izquierda a derecha, una frase por estación. Aclarar que las cuatro primeras son la preparación de los datos, hecha antes del modelado: la exportación de los chats se hizo una vez desde el sistema de la empresa (corte del 1/11) y el grupo trabaja con esa copia. Lo que corre sin internet es el modelado y la aplicación (el simulador y los tableros), que no están conectados al sistema de chats de Telar S.A.", "La fuente privada y la clave de seudonimización nunca salen del equipo dueño; el grupo trabaja con la copia revisada."],
+    titulo: "Del Data Mart salen dos caminos: BI y scoring en la app",
+    notas: ["Desde la base productiva de Telar S.A, una ingesta de solo lectura limpia los mensajes y calcula las variables disponibles al ancla. El Data Mart del VPS conserva sesiones, episodios y señales.", "A partir del Data Mart se bifurca el uso de los datos. El BI consulta agregados para mostrar tableros de demanda y seguimiento. Por otra rama, el modelo entrenado puntúa cada episodio nuevo y la app muestra una prioridad sugerida en la UI de chats.", "El score en vivo es inferencia; el test con respuestas conocidas se hizo sobre datos históricos. La presentación autocontenida sigue siendo una demostración del grupo, no la app productiva."],
     html: () => `
-      <div class="fases"><span class="fase fase--previa">Preparación de los datos, hecha antes del modelado</span><span class="fase fase--modelo">Modelado y aplicación: corren sin internet</span></div>
-      <div class="recorrido seis">
-        <div class="estacion"><h4>Fuente privada</h4><p>Chats de WhatsApp y del bot, exportados de la empresa.</p></div>
-        <div class="estacion"><h4>Limpieza</h4><p>Sin pruebas, contactos internos ni menús del bot. Seudonimizado.</p></div>
-        <div class="estacion"><h4>Data Mart</h4><p>Base SQLite con mensajes, sesiones y episodios.</p></div>
-        <div class="estacion"><h4>Variables</h4><p>56 señales al momento en que responde el bot. Nada del futuro.</p></div>
-        <div class="estacion"><h4>Modelos</h4><p>Dummy, árbol, bosque y MLP, con el mismo corte temporal.</p></div>
-        <div class="estacion clave"><h4>Aplicación</h4><p>Simulador y tableros de BI. Sin vínculo con el sistema de Telar S.A.</p></div>
-      </div>`,
+      <div class="pipeline-bif">
+        <div class="pipeline-bif__etapa pipeline-bif__fuente"><small>ORIGEN</small><h4>Base productiva</h4><p>Chats y respuestas del bot en Telar S.A.</p></div>
+        <div class="pipeline-bif__etapa pipeline-bif__preparacion"><small>PREPARACIÓN</small><h4>Limpieza y variables</h4><p>Ingesta de solo lectura, filtros y feature engineering al ancla.</p></div>
+        <div class="pipeline-bif__etapa pipeline-bif__mart"><small>EN EL VPS</small><h4>Data Mart</h4><p>Guarda sesiones, episodios y señales para ambos usos.</p></div>
+        <svg class="pipeline-bif__conector" viewBox="0 0 100 470" preserveAspectRatio="none" aria-hidden="true">
+          <path d="M0 235 H38" fill="none" stroke="#6b7885" stroke-width="5"/>
+          <path d="M38 235 V110 H88" fill="none" stroke="#2f5da8" stroke-width="5"/>
+          <path d="M38 235 V360 H88" fill="none" stroke="#cf432c" stroke-width="5"/>
+          <path d="M88 101 L100 110 L88 119 Z" fill="#2f5da8"/>
+          <path d="M88 351 L100 360 L88 369 Z" fill="#cf432c"/>
+        </svg>
+        <div class="pipeline-bif__rama pipeline-bif__bi"><small>RAMA 1 · ANÁLISIS</small><h4>Tableros de BI</h4><p>Consultas agregadas para analizar demanda y seguimiento.</p></div>
+        <div class="pipeline-bif__rama pipeline-bif__modelo"><small>RAMA 2 · ATENCIÓN</small><h4>Modelo predictivo</h4><div class="pipeline-bif__pasos"><span>Score en el VPS</span><b>→</b><span>Prioridad sugerida en la UI de chats</span></div></div>
+      </div>
+      <p class="chico" style="margin-top:26px">El BI muestra indicadores agregados; el modelo puntúa episodios nuevos para la app.</p>`,
   });
 
   slide({
     tag: "Feature engineering", quien: 1, min: 0.8, corto: "Del chat a las variables", chico: true,
     titulo: "El ancla convierte un chat en variables, sin mirar lo que pasa después",
-    notas: ["Este chat es completamente ficticio. El cliente pregunta por ambos médicos y por el precio mayorista: el ejemplo muestra una consulta natural sin exponer mensajes reales. En las variables, ambos es el identificador de esa familia de producto.", "A las 10:02 llega la primera respuesta comercial del bot. Ese mensaje es el ancla: se congelan pedido, oferta, coincidencia, día y tiempo transcurrido. La respuesta humana posterior no puede entrar como variable porque es lo que queremos predecir.", "requested_* y offered_* son indicadores 0/1 por familia. Como pueden aparecer varias familias, es codificación multi-hot; matched_* cruza pedido y oferta. weekday transforma la fecha y requested_family_count cuenta las familias pedidas.", "Prefix es el tramo desde el primer mensaje de la sesión hasta el ancla: aquí son 120 segundos. El ejemplo supone un martes, por eso weekday vale 1 si lunes es 0."],
+    notas: ["Este chat es completamente ficticio. El cliente pregunta por ambos médicos y por el precio mayorista; ambos es el identificador de esa familia de producto.", "A las 10:02 llega la primera respuesta comercial de Hila. Ese mensaje es el ancla: el proceso fija pedido, oferta, coincidencia, día y tiempo transcurrido. El Data Mart guarda ese vector y el modelo lo usa para calcular el score que verá la UI.", "requested_* y offered_* son indicadores 0/1 por familia. Como pueden aparecer varias familias, es codificación multi-hot; matched_* cruza pedido y oferta. weekday transforma la fecha y requested_family_count cuenta las familias pedidas.", "Prefix es el tramo desde el primer mensaje de la sesión hasta el ancla: aquí son 120 segundos. La respuesta humana posterior no puede entrar como variable porque es lo que queremos anticipar."],
     html: () => `<div class="ancla-demo">
       <div class="wa-telefono">
         <div class="wa-cabecera"><div class="wa-avatar">T</div><div><b>Telar S.A</b><small>Hila · asistente virtual</small></div><span class="wa-menu">⋮</span></div>
@@ -495,7 +501,7 @@
       </div>
       <div class="variables-ancla">
         <div class="pregunta">Variables fijadas a las 10:02</div>
-        <p class="variables-ancla__sub">Solo usamos lo que el chat mostró hasta la respuesta comercial del bot.</p>
+        <p class="variables-ancla__sub">El Data Mart las guarda al ancla y el modelo las usa para calcular el score.</p>
         <div class="variables-ancla__grid">
           <div class="variable-ancla"><code>requested_ambos</code><b>1</b><span>El cliente pidió ambos médicos</span></div>
           <div class="variable-ancla"><code>offered_ambos</code><b>1</b><span>El bot ofreció ambos médicos</span></div>
@@ -506,35 +512,24 @@
         </div>
       </div>
     </div>
-    <div class="ancla-aclaracion">La respuesta de una persona en las 24 horas siguientes será la etiqueta del episodio; no es una variable de entrada.</div>`,
+    <div class="ancla-aclaracion">El score llega a la UI de chats. La respuesta humana posterior no entra como variable.</div>`,
   });
 
   slide({
-    tag: "Arquitectura de la solución", quien: 1, min: 0.5, corto: "Los datos", chico: true,
-    titulo: `De 47 mil mensajes a ${num(R.embudo.con_cobertura)} episodios con seguimiento comparable`,
-    notas: ["Mensajes, sesiones y episodios son unidades distintas: de la exportación salen 35 mil mensajes elegibles, que se agrupan en 4.570 sesiones de consulta. Una pausa de más de 24 horas entre mensajes abre otra sesión; la sesión no tiene duración fija. Hay como máximo un episodio por sesión.", "De las 4.570 sesiones, 3.982 tienen un ancla comercial elegible. De esos episodios, 3.981 completaron el seguimiento de 24 horas; uno quedó pendiente al corte de los datos.", "El modelado actualizado excluye además 170 episodios maduros cuya ventana no tuvo horas de atención humana observada. Quedan 3.811 para comparar; ausencia de respuesta cuando no había atención no significa que el bot resolviera el caso.", "Recorrer las cuatro tarjetas: limpiar mensajes, agruparlos en una sesión, ubicar el ancla y observar las 24 horas siguientes. Las variables solo miran lo disponible hasta el ancla."],
-    html: () => {
-      const e = R.embudo;
-      const fila = (v, texto, pctv, color) => `<div style="background:var(--mesa);border-radius:4px;height:56px;margin:8px 0"><div style="width:${Math.max(pctv, 0)}%;height:100%;background:${color};border-radius:4px;display:flex;align-items:center;gap:12px;padding-left:16px;color:#fff;white-space:nowrap;overflow:hidden"><b style="font:700 34px var(--display);font-variant-numeric:tabular-nums">${num(v)}</b><span style="font-size:22px">${texto}</span></div></div>`;
-      return `<div class="grid" style="grid-template-columns:1fr 1fr;gap:48px;margin-top:20px">
-        <div><div class="pregunta">Mensajes</div>
-          ${fila(e.mensajes_fuente, "en la exportación", 100, "#8a94a0")}
-          ${fila(e.mensajes, "elegibles tras la limpieza", (e.mensajes / e.mensajes_fuente) * 100, "#2f5da8")}</div>
-        <div><div class="pregunta">De sesiones a episodios</div>
-          ${fila(e.sesiones, "sesiones de consulta", 100, "#8a94a0")}
-          ${fila(e.episodios, "con ancla comercial elegible", (e.episodios / e.sesiones) * 100, "#2f5da8")}
-          ${fila(e.maduros, "con 24 h observadas", (e.maduros / e.sesiones) * 100, "#2f5da8")}
-          ${fila(e.con_cobertura, "con atención posible en esas 24 h", (e.con_cobertura / e.sesiones) * 100, "#1d5c4e")}</div>
-      </div>
-      <div class="partido" style="height:54px;font-size:25px;margin-top:14px"><div style="width:${(e.con_humano / e.con_cobertura) * 100}%;background:#cf432c">${num(e.con_humano)} con respuesta humana</div><div style="flex:1;background:#1d5c4e">${num(e.sin_humano)} sin respuesta humana</div></div>
-      <div class="pregunta" style="margin-top:18px">Cómo construimos cada episodio</div>
+    tag: "Arquitectura de la solución", quien: 1, min: 0.5, corto: "Del ancla a la UI", chico: true,
+    titulo: "Cada episodio nuevo recibe un score sugerido en la UI de chats",
+    notas: ["Una sesión reúne mensajes del mismo contacto hasta una pausa de más de 24 horas. Puede durar más de un día; hay como máximo un episodio por sesión.", "La primera respuesta comercial del bot marca el ancla. El modelo del VPS usa solo variables disponibles hasta ese momento y calcula el score del episodio vigente. La UI muestra la prioridad sugerida, no una decisión automática de atención.", "La respuesta humana durante las 24 horas siguientes se registra como resultado para evaluación posterior; no se usa para producir el score actual. Los 3.811 episodios comparables son de la evaluación histórica, no el volumen de chats en vivo."],
+    html: () => `<div class="pregunta" style="margin-top:24px">Qué ocurre con cada chat nuevo</div>
       <div class="recorrido episodio">
-        <div class="estacion"><small>1 · LIMPIAR</small><h4>Mensajes elegibles</h4><p>Quitamos pruebas, contactos internos y menús del bot.</p></div>
-        <div class="estacion"><small>2 · AGRUPAR</small><h4>Sesión de consulta</h4><p>Una pausa mayor a 24 h entre mensajes abre otra sesión.</p></div>
-        <div class="estacion clave"><small>3 · ANCLA</small><h4>Primera respuesta comercial del bot</h4><p>En este instante fijamos las variables del episodio.</p></div>
-        <div class="estacion"><small>4 · OBSERVAR</small><h4>24 horas siguientes</h4><p>Registramos si respondió una persona.</p></div>
-      </div>`;
-    },
+        <div class="estacion"><small>1 · AGRUPAR</small><h4>Sesión</h4><p>Mensajes del mismo contacto; una pausa mayor a 24 h abre otra.</p></div>
+        <div class="estacion clave"><small>2 · ANCLA</small><h4>Episodio</h4><p>La primera respuesta comercial del bot fija las variables.</p></div>
+        <div class="estacion"><small>3 · INFERIR</small><h4>Score</h4><p>El modelo en el VPS puntúa el episodio vigente.</p></div>
+        <div class="estacion"><small>4 · MOSTRAR</small><h4>UI de chats</h4><p>La prioridad sugerida queda visible para el equipo.</p></div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:24px;margin-top:32px">
+        <div class="nota nota--azul"><b>Después del ancla</b><span>Observamos si respondió una persona en las 24 h siguientes. Ese dato sirve para evaluar, no para puntuar el chat actual.</span></div>
+        <div class="nota nota--azul"><b>Evaluación histórica</b><span>${num(R.embudo.con_cobertura)} episodios comparables respaldan la evaluación del modelo; no son el volumen en vivo del VPS.</span></div>
+      </div>`,
   });
 
   slide({
@@ -717,7 +712,7 @@
   slide({
     tag: "Aplicación funcional", quien: 5, min: 0.7, corto: "Del puntaje a la prioridad", chico: true,
     titulo: "Del puntaje a la prioridad: la cola de chats se divide en cuatro niveles",
-    notas: ["Cada chat recibe un puntaje del bosque; su lugar en la cola de chats pendientes define el nivel: Alta (los primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el resto).", "Las cifras son por nivel y no acumuladas: en octubre terminan con una persona 93, 69, 31 y 5 de cada 100 chats. En septiembre la separación fue parecida.", "Los cortes son una propuesta para validar con la gerencia y se definen por posición en la cola y no por probabilidad, porque los puntajes no están calibrados.", "El modelo ordena la cola: no decide por el operador. El prototipo es offline; la integración con el sistema de chats de Telar S.A queda como trabajo aparte."],
+    notas: ["Cada chat recibe un puntaje del bosque; su lugar en la cola de chats pendientes define el nivel: Alta (los primeros 30 %), Media (30 a 50 %), Baja (50 a 70 %) y Base (el resto).", "Las cifras son por nivel y no acumuladas: en octubre terminan con una persona 93, 69, 31 y 5 de cada 100 chats. En septiembre la separación fue parecida.", "Los cortes de esta demostración se definieron por posición en la cola y no por probabilidad, porque los puntajes no están calibrados. La UI operativa muestra una prioridad sugerida, que el equipo puede revisar.", "El modelo ordena la cola: no decide por el operador. Esta página reproduce el cálculo para la defensa sin depender de la conexión con el VPS."],
     html: () => {
       const nv = Object.fromEntries(R.niveles.test.map((f) => [f.nivel, f]));
       const sv = Object.fromEntries(R.niveles.validation.map((f) => [f.nivel, f]));
@@ -739,7 +734,7 @@
   slide({
     clase: "app", tag: "Aplicación funcional", quien: 5, min: 1.3, corto: "Probalo", chico: true,
     titulo: "Probalo: armá un chat y mirá qué responden los modelos",
-    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa. Aclarar que el número es un puntaje de prioridad (0 a 100), no una probabilidad calibrada.", "La prioridad sugerida ubica el puntaje del bosque entre los chats de octubre: un puntaje alto puede salir Media si muchos chats (los de ambos médicos y chalecos) puntúan todavía más alto.", "Esto corre en el navegador, sin servidor: los modelos entrenados están dentro de la página."],
+    notas: ["Elegir un ejemplo, mostrar el resultado y cambiar una sola cosa. Aclarar que el número es un puntaje de prioridad (0 a 100), no una probabilidad calibrada.", "La prioridad sugerida ubica el puntaje del bosque entre los chats de octubre: un puntaje alto puede salir Media si muchos chats (los de ambos médicos y chalecos) puntúan todavía más alto.", "Esta simulación para la defensa corre en el navegador sin servidor; en el escenario operativo, el modelo puntúa episodios en el VPS y la UI de chats recibe la prioridad sugerida."],
     html: () => `<div class="sim">
         <div>
           <div class="bloque-sim"><h5><i class="paso">1</i>Elegí un ejemplo</h5><div class="ejemplos" id="s-ejemplos">${EJEMPLOS.map((e, i) => `<button type="button" data-i="${i}">${esc(e.nombre)}</button>`).join("")}</div></div>
